@@ -1,6 +1,6 @@
 text
 
-# Chr0nosV3rs
+# Chr0nosV3rs               16 mai 2026
 
 > Journal de progression multi-projets — local-first, human-first.
 > Multi-project progression journal — local-first, human-first.
@@ -194,7 +194,7 @@ text
 Never zip the current level before creating and validating
 the synthesis of the level above.
 
-### Tech Stack
+### Tech Stack  Non - confirmer 
 
 | Component         | Technology                   |
 | ----------------- | ---------------------------- |

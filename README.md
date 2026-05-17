@@ -127,6 +127,8 @@ text
 
 Ce projet est un module futur du **PH3YNYX Hub**.
 
+> Note importante: la description de la maquette UI et des assets se trouve dans `Asset/README.md`.
+
 ---
 
 ## 🇬🇧 English
@@ -210,6 +212,8 @@ the synthesis of the level above.
 > 🟡 In design phase — vision validated, development upcoming.
 
 This project is a future module of the **PH3YNYX Hub**.
+
+> Important note: the UI mockup and assets description is available in `Asset/README.md`.
 
 ---
 

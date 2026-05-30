@@ -1,4 +1,5 @@
 import "./App.css";
+
 type Project = {
   name: string;
   lastActivity: string;
@@ -6,70 +7,54 @@ type Project = {
 };
 
 const projects: Project[] = [
-  {
-    name: "Projet Alpha",
-    lastActivity: "09 / 05 / 2025",
-    progress: 68,
-  },
-  {
-    name: "Projet Orion",
-    lastActivity: "07 / 05 / 2025",
-    progress: 42,
-  },
-  {
-    name: "Projet Nexus",
-    lastActivity: "05 / 05 / 2025",
-    progress: 87,
-  },
+  { name: "Projet Alpha", lastActivity: "09 / 05 / 2025", progress: 68 },
+  { name: "Projet Orion", lastActivity: "07 / 05 / 2025", progress: 42 },
+  { name: "Projet Nexus", lastActivity: "05 / 05 / 2025", progress: 87 },
 ];
 
 function App() {
   return (
     <main className="chronos-app">
       <section className="chronos-shell">
-        <aside className="sidebar">
-          <div className="brand">
-            <span className="brand-mark">⌛</span>
-            <span className="brand-name">↻hr0nosV3rs</span>
-          </div>
-
-          <div className="sidebar-block">
-            <h2>Projets</h2>
-
-            <button className="primary-action" type="button">
-              <span className="action-icon">＋</span>
-              <span>
-                <strong>Nouveau projet</strong>
-                <small>Créer un nouveau projet</small>
-              </span>
-            </button>
-
-            <button className="nav-action" type="button">
-              <span className="action-icon">◎</span>
-              <span>
-                <strong>Vue globale</strong>
-                <small>Voir tous les projets</small>
-              </span>
-            </button>
-          </div>
-
-          <div className="sidebar-block project-list-empty">
-            <h3>Mes projets</h3>
-            <div className="empty-box">
-              <span>▣</span>
-              <p>Aucun projet pour le moment.</p>
-              <small>
-                Créez votre premier projet ou consultez la vue globale.
-              </small>
+        {/* ================= ÉTAGE SUPÉRIEUR (3 Colonnes) ================= */}
+        <div className="top-layout-zone">
+          {/* Gauche : Sidebar (Haut ultra-compact) */}
+          <aside className="sidebar">
+            <div className="brand">
+              <span className="brand-mark">⏳</span>
+              <span className="brand-name">↻hr0nosV3rs</span>
             </div>
-          </div>
-        </aside>
 
-        <section className="main-zone">
+            <div className="sidebar-block">
+              <h2>Projets</h2>
+
+              <button className="primary-action" type="button">
+                <span className="action-icon">＋</span>
+                <span>
+                  <strong>Nouveau projet</strong>
+                </span>
+              </button>
+
+              <button className="nav-action" type="button">
+                <span className="action-icon">◎</span>
+                <span>
+                  <strong>Vue globale</strong>
+                </span>
+              </button>
+            </div>
+          </aside>
+
+          {/* Milieu : Cockpit textuel + Sablier central */}
           <header className="hero">
             <div className="hero-copy">
               <p className="eyebrow">↻hr0nosV3rs</p>
-              <h1>Ton temps. Ta mémoire. Ta progression.</h1>
+              <h1>
+                Ton temps.
+                <br />
+                Ta mémoire.
+                <br />
+                Ta progression.
+              </h1>
               <p>
                 Chaque projet compte. Chaque souvenir construit. Chaque synthèse
                 demeure.
@@ -77,11 +62,12 @@ function App() {
             </div>
 
             <div className="hero-visual" aria-label="Espace visuel central">
-              <div className="hourglass">⌛</div>
+              <div className="hourglass">⏳</div>
               <div className="visual-label">Mémoire active</div>
             </div>
           </header>
 
+          {/* Droite : Panneau des 3 blocs empilés */}
           <section className="dashboard-grid">
             <article className="status-card">
               <div className="card-header">
@@ -96,12 +82,7 @@ function App() {
                 </div>
               </div>
               <div className="progress-track">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: "86%",
-                  }}
-                />
+                <div className="progress-fill" style={{ width: "86%" }} />
               </div>
             </article>
 
@@ -132,7 +113,23 @@ function App() {
               </button>
             </article>
           </section>
+        </div>
 
+        {/* ================= ÉTAGE INFÉRIEUR (Alignement horizontal total) ================= */}
+        <div className="bottom-layout-zone">
+          {/* Zone Orange : Reste vertical de la sidebar */}
+          <div className="sidebar-bottom-empty">
+            <div className="empty-box">
+              <span>▣</span>
+              <p>Mes projets</p>
+              <small>
+                Aucun projet pour le moment. Créez votre premier projet ou
+                consultez la vue globale.
+              </small>
+            </div>
+          </div>
+
+          {/* Suite Horizontale : Les 5 boîtes grises */}
           <section className="projects-overview">
             <article className="overview-card">
               <span className="overview-icon">◎</span>
@@ -153,9 +150,7 @@ function App() {
                   <div className="progress-track">
                     <div
                       className="progress-fill"
-                      style={{
-                        width: `${project.progress}%`,
-                      }}
+                      style={{ width: `${project.progress}%` }}
                     />
                   </div>
                   <strong>{project.progress}%</strong>
@@ -169,8 +164,9 @@ function App() {
               <p>Créer un nouveau projet</p>
             </article>
           </section>
-        </section>
+        </div>
 
+        {/* Footer */}
         <footer className="footer-status">
           <span>● Mode local</span>
           <span>◇ Données sécurisées</span>

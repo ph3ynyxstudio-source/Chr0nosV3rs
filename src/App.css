@@ -3,11 +3,11 @@
 }
 
 :root {
-  --bg-app: #050812;
-  --bg-card: rgba(10, 18, 34, 0.72);
-  --bg-card-glow: rgba(104, 153, 255, 0.22);
+  --bg-app: #030611;
+  --bg-card: rgba(8, 14, 28, 0.65);
+  --bg-card-glow: rgba(84, 214, 255, 0.1);
   --text-primary: #f4f7fb;
-  --text-secondary: #9ca8bf;
+  --text-secondary: #7b88a1;
   --accent-blue: #54d6ff;
   --accent-purple: #7e5cff;
 }
@@ -22,425 +22,246 @@ body {
   font-family: Inter, system-ui, sans-serif;
 }
 
-button {
-  font: inherit;
-}
-
 .chronos-app {
   height: 100vh;
-  padding: 1.4%;
+  padding: 15px;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 50% 20%,
-      rgba(44, 119, 255, 0.18),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      rgba(137, 70, 255, 0.18),
-      transparent 30%
-    ),
-    var(--bg-app);
 }
 
-/* La coque gère la coupure horizontale (Haut 58% / Bas 42%) */
 .chronos-shell {
   position: relative;
-  display: grid;
-  grid-template-rows: 58% 42%;
-  gap: 24px;
-  height: calc(100vh - 48px);
-  padding: 24px 24px 54px 24px;
-  border: 1px solid var(--bg-card-glow);
-  border-radius: 28px;
-  background: rgba(8, 14, 28, 0.78);
-  overflow: hidden;
-}
-
-/* ================= ÉTAGE SUPÉRIEUR (3 Colonnes) ================= */
-.top-layout-zone {
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: 300px 1fr 280px;
-  gap: 24px;
-  height: 100%;
-  overflow: hidden;
-}
-
-.sidebar {
-  border: 1px solid rgba(126, 170, 255, 0.18);
-  border-radius: 20px 20px 0 0;
-  border-bottom: none;
-  background: var(--bg-card);
-  padding: 16px;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  padding: 24px;
+  border: 1px solid rgba(84, 214, 255, 0.15);
+  border-radius: 24px;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(12, 22, 46, 0.95),
+    var(--bg-app)
+  );
+  overflow: hidden;
 }
 
-.brand {
+.main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100% - 20px);
+}
+
+/* ================= TOP WORKSPACE ================= */
+.top-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 320px; /* Layout 3 colonnes symétrique à la maquette */
+  gap: 32px;
+  align-items: center;
+  flex: 1;
+  height: 65%;
+}
+
+.text-stylized-zone {
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  letter-spacing: 4px;
-}
-.brand-mark {
-  font-size: 22px;
-}
-.brand-name {
-  font-size: 15px;
-  font-weight: 700;
-}
-.sidebar-block {
-  margin-bottom: 12px;
 }
 
-.sidebar h2,
-.sidebar h3,
+.center-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.main-asset {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  justify-content: center;
+}
+
+/* ================= CARDS & WIDGETS ================= */
+.status-card,
+.overview-card,
+.project-card,
+.new-project-card {
+  padding: 18px;
+  border: 1px solid rgba(84, 214, 255, 0.08);
+  border-radius: 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+}
+
 .status-card h2,
 .overview-card h2 {
-  margin: 0 0 14px;
-  font-size: 13px;
+  margin: 0 0 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #d9e4ff;
-}
-
-.primary-action,
-.nav-action {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  padding: 8px 12px;
-  border: 1px solid rgba(89, 174, 255, 0.25);
-  border-radius: 10px;
-  color: var(--text-primary);
-  background: rgba(18, 33, 64, 0.6);
-  cursor: pointer;
-  text-align: left;
-}
-.primary-action strong,
-.nav-action strong {
-  font-size: 12px;
-  font-weight: 600;
-}
-.action-icon {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(66, 196, 255, 0.4);
-  border-radius: 6px;
-  color: var(--accent-blue);
-  font-size: 11px;
-}
-
-/* Cockpit central */
-.hero {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  align-items: center;
-  gap: 20px;
-  height: 100%;
-  padding: 0 10px;
-}
-.eyebrow {
-  margin: 0 0 6px;
-  letter-spacing: 8px;
-  font-weight: 700;
-  color: #d9e4ff;
-}
-.hero h1 {
-  margin: 0 0 12px;
-  font-size: clamp(20px, 2.3vw, 34px);
-  line-height: 1.15;
-}
-.hero p {
-  color: #b5c0d6;
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.hero-visual {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle, rgba(67, 210, 255, 0.18), transparent 45%),
-    rgba(255, 255, 255, 0.02);
-}
-.hourglass {
-  font-size: 56px;
-  margin-bottom: 4px;
-}
-.visual-label {
   color: var(--text-secondary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 11px;
 }
 
-/* Grille de droite (3 blocs) */
-.dashboard-grid {
-  display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  gap: 12px;
-  height: 100%;
-}
-.status-card {
-  padding: 14px;
-  border: 1px solid rgba(126, 170, 255, 0.18);
-  border-radius: 20px;
-  background: var(--bg-card);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-}
-.card-header span {
   color: var(--accent-blue);
-  font-weight: bold;
 }
+
 .week-status {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 4px 0;
+  margin: 8px 0;
 }
-.week-status small,
-.status-card small {
-  display: block;
-  color: var(--text-secondary);
-  font-size: 11px;
-}
+
 .ring {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 4px solid rgba(66, 196, 255, 0.75);
-  border-radius: 999px;
-  font-size: 12px;
+  width: 38px;
+  height: 38px;
+  border: 3px solid var(--accent-blue);
+  border-radius: 50%;
+  font-size: 11px;
   font-weight: bold;
 }
+
 .progress-track {
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
   overflow: hidden;
-  margin-top: auto;
 }
+
 .progress-fill {
   height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #34d4ff, var(--accent-purple));
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
 }
 
 .mini-chart {
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  height: 45px;
-  margin-top: auto;
+  height: 50px;
 }
 .mini-chart span {
   flex: 1;
-  border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, #6b7cff, #29d4ff);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgba(84, 214, 255, 0.4),
+    rgba(126, 92, 255, 0.1)
+  );
 }
-.mini-chart span:nth-child(1) {
-  height: 30%;
+.mini-chart span:nth-child(n) {
+  height: 40%;
 }
-.mini-chart span:nth-child(2) {
-  height: 45%;
+.mini-chart span:nth-child(2n) {
+  height: 70%;
 }
-.mini-chart span:nth-child(3) {
-  height: 38%;
-}
-.mini-chart span:nth-child(4) {
-  height: 62%;
-}
-.mini-chart span:nth-child(5) {
-  height: 58%;
-}
-.mini-chart span:nth-child(6) {
-  height: 74%;
-}
-.mini-chart span:nth-child(7) {
-  height: 88%;
+.mini-chart span:nth-child(3n) {
+  height: 55%;
 }
 
 .secondary-action {
-  margin-top: auto;
-  padding: 4px 12px;
-  border: 1px solid rgba(89, 174, 255, 0.36);
-  border-radius: 8px;
-  color: #f4f7fb;
-  background: rgba(28, 63, 126, 0.65);
+  margin-top: 10px;
+  padding: 6px 14px;
+  border: 1px solid rgba(84, 214, 255, 0.2);
+  border-radius: 6px;
+  color: white;
+  background: rgba(84, 214, 255, 0.05);
   cursor: pointer;
   font-size: 11px;
-  width: fit-content;
 }
 
-/* ================= ÉTAGE INFÉRIEUR (Alignement horizontal total) ================= */
+/* ================= BOTTOM ZONE (5 Colonnes) ================= */
 .bottom-layout-zone {
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 24px;
-  height: 100%;
-  overflow: hidden;
-  padding-top: 12px;
-}
-
-.sidebar-bottom-empty {
-  border: 1px solid rgba(126, 170, 255, 0.18);
-  border-radius: 0 0 20px 20px;
-  border-top: none;
-  background: var(--bg-card);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-}
-.empty-box {
-  text-align: center;
-  color: var(--text-secondary);
-}
-.empty-box span {
-  display: block;
-  font-size: 20px;
-  margin-bottom: 4px;
-  color: var(--accent-blue);
-}
-.empty-box p {
-  margin: 0 0 2px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.empty-box small {
-  font-size: 10px;
-  display: block;
-  line-height: 1.2;
-}
-
-/* Les 5 cartes du bas horizontales */
-.projects-overview {
   display: grid;
   grid-template-columns: 1.2fr repeat(3, 1fr) 1.2fr;
   gap: 16px;
+  height: 30%;
   align-items: stretch;
-  height: 100%;
 }
 
-.overview-card,
-.project-card,
-.new-project-card {
-  padding: 14px;
-  border: 1px solid rgba(126, 170, 255, 0.18);
-  border-radius: 20px;
-  background: var(--bg-card);
+.client-global-view {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
 }
-
-.overview-card h2,
-.project-card h3,
-.new-project-card h3 {
-  margin: 0 0 4px 0;
-  font-size: 12px;
-  font-weight: 600;
-}
-.overview-card p,
-.new-project-card p {
-  color: var(--text-secondary);
-  margin: 0;
+.client-global-view p {
   font-size: 11px;
-  line-height: 1.2;
+  color: var(--text-secondary);
+  margin: 4px 0;
 }
-.overview-card button {
-  margin-top: auto;
-  padding: 4px 10px;
-  border: 1px solid rgba(89, 174, 255, 0.36);
-  border-radius: 6px;
-  color: #f4f7fb;
-  background: rgba(28, 63, 126, 0.65);
+.client-global-view button {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
   cursor: pointer;
   font-size: 11px;
-  width: fit-content;
-}
-.overview-icon {
-  font-size: 18px;
-  color: var(--accent-blue);
-  margin-bottom: 2px;
-  display: block;
 }
 
+.project-card h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
 .project-card small {
-  color: var(--text-secondary);
   font-size: 10px;
-  display: block;
-  margin-top: 2px;
+  color: var(--text-secondary);
 }
 .project-card p {
-  margin: 2px 0;
+  margin: 2px 0 10px;
   font-size: 12px;
-  font-weight: bold;
-  color: var(--text-primary);
 }
-.project-progress {
-  display: grid;
-  grid-template-columns: 1fr auto;
+
+.progress-container {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
 }
-.project-progress strong {
+.pct-text {
   font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .new-project-card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   border-style: dashed;
+  border-color: rgba(84, 214, 255, 0.2);
 }
 .new-project-card span {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 2px solid rgb(66, 195, 255);
-  border-radius: 999px;
-  color: #54d6ff;
+  font-size: 18px;
+  color: var(--accent-blue);
+}
+.new-project-card h3 {
   font-size: 12px;
-  margin-bottom: 4px;
+  margin: 4px 0 2px;
+}
+.new-project-card p {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
-/* Footer de page */
 .footer-status {
-  position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: 15px;
   display: flex;
   justify-content: space-between;
-  color: var(--text-secondary);
-  font-size: 12px;
+  margin-top: 14px;
+  color: rgba(123, 136, 161, 0.4);
+  font-size: 10px;
 }

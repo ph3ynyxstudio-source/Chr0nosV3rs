@@ -12,7 +12,7 @@ export const UI_TERMS = {
   // États & Philosophie
   STATUS_LOCAL: "Mode local",
   STATUS_SECURE: "Données sécurisées",
-  PHILOSOPHY: "Souveraineté numérique",
+  PHILOSOPHY: "Données locales privées",
 
   // Navigation Temporelle
   TIME_CARD: "Carte temporelle",

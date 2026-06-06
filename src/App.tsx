@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ProjectCard } from "./components/ProjectCard";
 import "./App.css";
 
 type Project = {
@@ -13,6 +15,8 @@ const projects: Project[] = [
 ];
 
 function App() {
+  const [activeProject, setActiveProject] = useState("Projet Alpha");
+
   return (
     <main className="chronos-app">
       <section className="chronos-shell">
@@ -21,7 +25,11 @@ function App() {
           <div className="top-workspace">
             {/* Gauche : Emplacement réservé pour l'écriture stylisée */}
             <div className="text-stylized-zone">
-              {/* Vide pour le moment - Prêt pour ton futur build */}
+              <img
+                src="/assets/chr0notexte.png"
+                alt="CHR0NOSV3RS"
+                className="app-logo"
+              />
             </div>
 
             {/* Centre : Visuel Phénix & Sablier (Asset image) */}
@@ -94,37 +102,15 @@ function App() {
 
             {/* Les cartes projets dynamiques */}
             {projects.map((project) => (
-              <article className="project-card" key={project.name}>
-                <h3>{project.name}</h3>
-                <small>Dernière activité</small>
-                <p>{project.lastActivity}</p>
-                <div className="progress-container">
-                  <svg width="28" height="28" viewBox="0 0 28 28">
-                    <circle
-                      cx="14"
-                      cy="14"
-                      r="12"
-                      stroke="var(--bg-card-glow)"
-                      strokeWidth="3"
-                      fill="none"
-                    />
-                    <circle
-                      cx="14"
-                      cy="14"
-                      r="12"
-                      stroke="var(--accent-blue)"
-                      strokeWidth="3"
-                      fill="none"
-                      strokeDasharray="75.4"
-                      strokeDashoffset={75.4 - (project.progress / 100) * 75.4}
-                    />
-                  </svg>
-                  <span className="pct-text">{project.progress}%</span>
-                </div>
-              </article>
+              <ProjectCard
+                key={project.name}
+                name={project.name}
+                lastActivity={project.lastActivity}
+                progress={project.progress}
+                isActive={activeProject === project.name}
+                onClick={() => setActiveProject(project.name)}
+              />
             ))}
-
-            {/* Carte d'action : Nouveau Projet */}
             <article className="new-project-card">
               <span>＋</span>
               <h3>Nouveau projet</h3>

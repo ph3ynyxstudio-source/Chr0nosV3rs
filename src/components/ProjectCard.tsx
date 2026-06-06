@@ -1,46 +1,60 @@
-// Import du fichier CSS du composant
-import "./ProjectCard.css";
-// Import des tokens de design pour les couleurs
+import React from "react";
+// AJOUT 1 : On importe ton dictionnaire de couleurs
 import { DESIGN_TOKENS } from "../theme/design_tokens";
 
-// Définition des propriétés attendues par le composant
 interface ProjectCardProps {
   name: string;
   lastActivity: string;
   progress: number;
-  isActive: boolean;
-  onClick: () => void;
+  isActive?: boolean;
+  onClick?: () => void;
 }
 
-export function ProjectCard({
+export const ProjectCard: React.FC<ProjectCardProps> = ({
   name,
   lastActivity,
   progress,
-  isActive,
+  isActive = false,
   onClick,
-}: ProjectCardProps) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyPress={(e) => {
-        if (e.key === "Enter" || e.key === " ") onClick();
-      }}
-      className={`project-card ${isActive ? "is-active" : ""}`}
-      style={{
-        // Couleur de fond provenant des tokens de design
-        backgroundColor: DESIGN_TOKENS.colors.bg.card,
-      }}>
-      <h3>{name}</h3>
-      <span className="activity">Dernière activité : {lastActivity}</span>
+}) => {
+  const dashOffset = 75.4 - (progress / 100) * 75.4;
+  const classNames = ["project-card", isActive ? "active" : ""]
+    .filter(Boolean)
+    .join(" ");
 
+  return (
+    <article className={classNames} onClick={onClick} key={name}>
+      <h3>{name}</h3>
+      <small>Dernière activité</small>
+      <p>{lastActivity}</p>
       <div className="progress-container">
-        <div
-          className="radial-loader"
-          style={{ borderColor: DESIGN_TOKENS.colors.accent.blue }}></div>
-        <span>{progress}%</span>
+        <svg width="28" height="28" viewBox="0 0 28 28">
+          <circle
+            cx="14"
+            cy="14"
+            r="12"
+            stroke="var(--bg-card-glow)" // On garde la variable CSS ici pour l'instant
+            strokeWidth="3"
+            fill="none"
+          />
+          {/* AJOUT 2 : On utilise le dictionnaire TS pour la couleur bleue */}
+          <circle
+            cx="14"
+            cy="14"
+            r="12"
+            stroke={
+              isActive
+                ? DESIGN_TOKENS.colors.accent.purple
+                : DESIGN_TOKENS.colors.accent.blue
+            }
+            strokeWidth="3"
+            fill="none"
+            strokeDasharray="75.4"
+            strokeDashoffset={dashOffset}
+          />
+        </svg>
+        <span className="pct-text">{progress}%</span>
       </div>
-    </div>
+    </article>
   );
-}
+};

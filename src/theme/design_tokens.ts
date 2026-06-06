@@ -1,18 +1,17 @@
 export const DESIGN_TOKENS = {
   colors: {
     bg: {
-      app: "#02050a", // Fond ultra sombre
-      card: "rgba(10, 18, 30, 0.45)", // Cartes vitrées sombres
-      cardEdit: "rgba(20, 35, 60, 0.6)", // Accent pour les 2 jours éditables
+      app: "#030611",
+      card: "rgba(8, 14, 28, 0.65)",
+      cardGlow: "rgba(84, 214, 255, 0.1)",
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#94a3b8", // Gris textuel secondaire
-      muted: "#475569", // Jours en lecture seule
+      primary: "#f4f7fb",
+      secondary: "#7b88a1",
     },
     accent: {
-      blue: "#38bdf8", // Cyan des jauges
-      purple: "#a855f7", // Violet de sélection
+      blue: "rgb(84, 214, 255)",
+      purple: "#a855f7",
     },
   },
 } as const;

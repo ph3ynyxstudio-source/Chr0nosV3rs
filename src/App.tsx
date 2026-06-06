@@ -26,7 +26,7 @@ function App() {
             {/* Gauche : Emplacement réservé pour l'écriture stylisée */}
             <div className="text-stylized-zone">
               <img
-                src="/assets/chr0notexte.png"
+                src="/assets/TEXTE_Style_officiel_2000x500.png"
                 alt="CHR0NOSV3RS"
                 className="app-logo"
               />
@@ -35,7 +35,7 @@ function App() {
             {/* Centre : Visuel Phénix & Sablier (Asset image) */}
             <div className="center-visual">
               <img
-                src="/assets/ui-visual.png"
+                src="/assets/Dashboard-asset.png"
                 alt="Chronos Visual"
                 className="main-asset"
               />

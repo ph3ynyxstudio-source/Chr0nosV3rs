@@ -6,6 +6,8 @@ type ProjectCardProps = {
   progress: number;
   isActive?: boolean;
   onClick?: () => void;
+  onDelete?: () => void;
+  canDelete?: boolean;
 };
 
 export function ProjectCard({
@@ -14,6 +16,8 @@ export function ProjectCard({
   progress,
   isActive = false,
   onClick,
+  onDelete,
+  canDelete = true,
 }: ProjectCardProps) {
   const className = ["project-card", isActive ? "active" : ""]
     .filter(Boolean)
@@ -32,7 +36,24 @@ export function ProjectCard({
         }
       }}
       aria-pressed={isActive}>
-      <h3>{name}</h3>
+      <div className="project-card-header">
+        <h3>{name}</h3>
+        {canDelete ? (
+          <button
+            type="button"
+            className="project-delete-button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete?.();
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+            }}
+            aria-label={`Supprimer ${name}`}>
+            Supprimer
+          </button>
+        ) : null}
+      </div>
       <small>Dernière activité</small>
       <p>{lastActivity}</p>
 

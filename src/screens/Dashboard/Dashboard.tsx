@@ -1,10 +1,11 @@
 import { ProjectCard } from "../../components/ProjectCard/ProjectCard";
 import { LastSynthesisCard } from "./components/LastSynthesisCard/LastSynthesisCard";
 import { NewProjectCard } from "./components/NewProjectCard/NewProjectCard";
+import { NewProjectOverlay } from "./components/NewProjectOverlay/NewProjectOverlay";
 import { OverviewCard } from "./components/OverviewCard/OverviewCard";
 import { ProgressCard } from "./components/ProgressCard/ProgressCard";
 import { StatusCard } from "./components/StatusCard/StatusCard";
-import { projects, type Project } from "./projects";
+import { type Project } from "./projects";
 import "./Dashboard.css";
 
 const buildChartPoints = (values: number[]) =>
@@ -17,15 +18,31 @@ const buildChartPoints = (values: number[]) =>
     .join(" ");
 
 type DashboardProps = {
+  projects: Project[];
   activeProjectId: string | null;
   onOpenWeeklyView: (projectId: string) => void;
   onProjectSelect: (project: Project) => void;
+  onOpenCreateProjectOverlay: () => void;
+  isCreateProjectOverlayOpen: boolean;
+  newProjectName: string;
+  onNewProjectNameChange: (value: string) => void;
+  onCancelCreateProject: () => void;
+  onConfirmCreateProject: () => void;
+  onDeleteProject: (project: Project) => void;
 };
 
 export function Dashboard({
+  projects,
   activeProjectId,
   onOpenWeeklyView,
   onProjectSelect,
+  onOpenCreateProjectOverlay,
+  isCreateProjectOverlayOpen,
+  newProjectName,
+  onNewProjectNameChange,
+  onCancelCreateProject,
+  onConfirmCreateProject,
+  onDeleteProject,
 }: DashboardProps) {
   const initialProject = projects[0];
   const selectedProject =
@@ -33,6 +50,8 @@ export function Dashboard({
   const displayProject = selectedProject ?? initialProject;
   const weekProgress = Math.round((displayProject.completedDays / 7) * 100);
   const chartPoints = buildChartPoints(displayProject.weeklyBars);
+  const placeholderCount = Math.max(0, 3 - projects.length);
+  const shouldScrollProjects = projects.length >= 4;
 
   return (
     <section className="chronos-shell">
@@ -92,17 +111,39 @@ export function Dashboard({
             }}
           />
 
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              name={project.name}
-              lastActivity={project.lastActivity}
-              progress={project.progress}
-              isActive={activeProjectId === project.id}
-              onClick={() => onProjectSelect(project)}
-            />
-          ))}
-          <NewProjectCard />
+          <div
+            className={`projects-center-zone ${
+              shouldScrollProjects ? "is-scrollable" : ""
+            }`}>
+            <div className="projects-center-track">
+              {projects.map((project) => (
+                <div key={project.id} className="projects-center-item">
+                  <ProjectCard
+                    name={project.name}
+                    lastActivity={project.lastActivity}
+                    progress={project.progress}
+                    isActive={activeProjectId === project.id}
+                    onClick={() => onProjectSelect(project)}
+                    onDelete={() => onDeleteProject(project)}
+                    canDelete={projects.length > 1}
+                  />
+                </div>
+              ))}
+
+              {!shouldScrollProjects &&
+                Array.from({ length: placeholderCount }, (_, index) => (
+                  <div
+                    key={`placeholder-${index + 1}`}
+                    className="projects-center-placeholder"
+                    aria-hidden="true"
+                  />
+                ))}
+            </div>
+          </div>
+
+          <div className="new-project-fixed-slot">
+            <NewProjectCard onClick={onOpenCreateProjectOverlay} />
+          </div>
         </section>
       </div>
 
@@ -112,6 +153,14 @@ export function Dashboard({
         <span>◇ Données sécurisées</span>
         <span>Souveraineté numérique</span>
       </footer>
+
+      <NewProjectOverlay
+        isOpen={isCreateProjectOverlayOpen}
+        projectName={newProjectName}
+        onProjectNameChange={onNewProjectNameChange}
+        onCancel={onCancelCreateProject}
+        onConfirm={onConfirmCreateProject}
+      />
     </section>
   );
 }

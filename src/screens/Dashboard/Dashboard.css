@@ -137,7 +137,7 @@
 
 .bottom-layout-zone {
   display: grid;
-  grid-template-columns: 1.2fr repeat(3, 1fr) 1.2fr;
+  grid-template-columns: 1.08fr repeat(3, 1fr) 1.2fr;
   gap: 12px;
   height: 230px;
   align-items: stretch;
@@ -146,6 +146,45 @@
 }
 
 .bottom-layout-zone > * {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.projects-center-zone {
+  grid-column: 2 / 5;
+  min-width: 0;
+  overflow: hidden;
+  --project-slot-width: calc((100% - 24px) / 3);
+}
+
+.projects-center-zone.is-scrollable {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.projects-center-track {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  min-width: 0;
+}
+
+.projects-center-item,
+.projects-center-placeholder {
+  flex: 0 0 var(--project-slot-width);
+  width: var(--project-slot-width);
+  min-width: 0;
+  height: 100%;
+}
+
+.projects-center-placeholder {
+  pointer-events: none;
+}
+
+.new-project-fixed-slot {
+  grid-column: 5;
   min-width: 0;
   min-height: 0;
   height: 100%;

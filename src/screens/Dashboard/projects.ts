@@ -26,10 +26,10 @@ export type Project = {
   weeklyDays: WeeklyDay[];
 };
 
-export const projects: Project[] = [
+export const initialProjects: Project[] = [
   {
-    id: "alpha",
-    name: "Projet Alpha",
+    id: "chronosvers",
+    name: "Chr0nosVers",
     lastActivity: "09 / 05 / 2025",
     progress: 68,
     activeWeek: "Semaine 12",
@@ -52,54 +52,93 @@ export const projects: Project[] = [
       { id: "sun", label: "Dimanche", date: "11/05/2025", shortDate: "11/05", status: "A faire" },
     ],
   },
-  {
-    id: "orion",
-    name: "Projet Orion",
-    lastActivity: "07 / 05 / 2025",
-    progress: 42,
-    activeWeek: "Semaine 10",
-    weekRangeLabel: "28 Avr - 04 Mai 2025",
-    completedDays: 4,
-    weekCompletionLabel: "4 / 7 jours completes",
-    weeklyBars: [38, 52, 44, 61, 57, 20, 12],
-    synthesisTitle: "Synthese S09",
-    synthesisDate: "07 / 05 / 2025",
+];
+
+const formatUiDate = (date: Date) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+    .format(date)
+    .replace(/\//g, " / ");
+
+const buildDefaultWeeklyDays = (baseDate: Date): WeeklyDay[] => {
+  const dayLabels = [
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+    "Dimanche",
+  ];
+
+  return dayLabels.map((label, index) => {
+    const currentDate = new Date(baseDate);
+    currentDate.setDate(baseDate.getDate() + index);
+    const shortDate = new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+    }).format(currentDate);
+    const fullDate = new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(currentDate);
+
+    return {
+      id: `${label.toLowerCase().slice(0, 3)}-${index + 1}`,
+      label,
+      date: fullDate,
+      shortDate,
+      status: index === 0 ? "En cours" : "A faire",
+    };
+  });
+};
+
+export function createProject({
+  id,
+  name,
+  lastActivity,
+  progress,
+}: Pick<Project, "id" | "name" | "lastActivity" | "progress">): Project {
+  const today = new Date();
+
+  return {
+    id,
+    name,
+    lastActivity,
+    progress,
+    activeWeek: "Semaine active",
+    weekRangeLabel: "Semaine actuelle",
+    completedDays: 0,
+    weekCompletionLabel: "0 / 7 jours completes",
+    weeklyBars: [14, 18, 12, 0, 0, 0, 0],
+    synthesisTitle: "Synthese a venir",
+    synthesisDate: lastActivity,
     weeklySynthesisStatus: "Proposition",
     synthesisActionLabel: "Ouvrir",
-    weeklyContext: "Stabilisation du pipeline de collecte et nettoyage des entrees.",
-    weeklyDays: [
-      { id: "mon", label: "Lundi", date: "28/04/2025", shortDate: "28/04", status: "Completee" },
-      { id: "tue", label: "Mardi", date: "29/04/2025", shortDate: "29/04", status: "Completee" },
-      { id: "wed", label: "Mercredi", date: "30/04/2025", shortDate: "30/04", status: "En cours" },
-      { id: "thu", label: "Jeudi", date: "01/05/2025", shortDate: "01/05", status: "A faire" },
-      { id: "fri", label: "Vendredi", date: "02/05/2025", shortDate: "02/05", status: "A faire" },
-      { id: "sat", label: "Samedi", date: "03/05/2025", shortDate: "03/05", status: "A faire" },
-      { id: "sun", label: "Dimanche", date: "04/05/2025", shortDate: "04/05", status: "A faire" },
-    ],
-  },
-  {
-    id: "nexus",
-    name: "Projet Nexus",
-    lastActivity: "05 / 05 / 2025",
-    progress: 87,
-    activeWeek: "Semaine 14",
-    weekRangeLabel: "12 - 18 Mai 2025",
-    completedDays: 7,
-    weekCompletionLabel: "7 / 7 jours completes",
-    weeklyBars: [84, 79, 88, 93, 86, 72, 64],
-    synthesisTitle: "Synthese S13",
-    synthesisDate: "05 / 05 / 2025",
-    weeklySynthesisStatus: "Validee",
-    synthesisActionLabel: "Consulter",
-    weeklyContext: "Finalisation du moteur de synthese et validation de la restitution.",
-    weeklyDays: [
-      { id: "mon", label: "Lundi", date: "12/05/2025", shortDate: "12/05", status: "Completee" },
-      { id: "tue", label: "Mardi", date: "13/05/2025", shortDate: "13/05", status: "Completee" },
-      { id: "wed", label: "Mercredi", date: "14/05/2025", shortDate: "14/05", status: "Completee" },
-      { id: "thu", label: "Jeudi", date: "15/05/2025", shortDate: "15/05", status: "Completee" },
-      { id: "fri", label: "Vendredi", date: "16/05/2025", shortDate: "16/05", status: "En cours" },
-      { id: "sat", label: "Samedi", date: "17/05/2025", shortDate: "17/05", status: "A faire" },
-      { id: "sun", label: "Dimanche", date: "18/05/2025", shortDate: "18/05", status: "A faire" },
-    ],
-  },
-];
+    weeklyContext: `Nouvelle session en preparation pour ${name}.`,
+    weeklyDays: buildDefaultWeeklyDays(today),
+  };
+}
+
+export function buildNewProjectName(projects: Project[]) {
+  const nextProjectNumber =
+    projects.reduce((maxValue, project) => {
+      const match = /^Projet\s+(\d+)$/i.exec(project.name);
+
+      if (!match) {
+        return maxValue;
+      }
+
+      return Math.max(maxValue, Number(match[1]));
+    }, 0) + 1;
+
+  return `Projet ${nextProjectNumber}`;
+}
+
+export function formatProjectLastActivity(date: Date) {
+  return formatUiDate(date);
+}

@@ -5,6 +5,9 @@ type WeeklyDayCardProps = {
   label: string;
   shortDate: string;
   status: WeeklyDayStatus;
+  isDisabled?: boolean;
+  isOpen?: boolean;
+  onClick?: () => void;
 };
 
 const getStatusClassName = (status: WeeklyDayStatus) => {
@@ -23,13 +26,22 @@ export function WeeklyDayCard({
   label,
   shortDate,
   status,
+  isDisabled = false,
+  isOpen = false,
+  onClick,
 }: WeeklyDayCardProps) {
   return (
-    <article className={`weekly-day-card ${getStatusClassName(status)}`}>
+    <button
+      type="button"
+      className={`weekly-day-card ${getStatusClassName(status)} ${
+        isOpen ? "is-open" : ""
+      }`}
+      onClick={onClick}
+      disabled={isDisabled}>
       <span className="weekly-day-label">{label}</span>
       <strong>{shortDate}</strong>
       <span className="weekly-day-indicator" aria-hidden="true" />
       <span className="weekly-day-status">{status}</span>
-    </article>
+    </button>
   );
 }

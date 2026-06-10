@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { type Project } from "../Dashboard/projects";
 import { LastSynthesisCard } from "./components/LastSynthesisCard/LastSynthesisCard";
+import { SessionOverlay } from "./components/SessionOverlay/SessionOverlay";
 import { TodaySessionCard } from "./components/TodaySessionCard/TodaySessionCard";
 import { WeeklyDayCard } from "./components/WeeklyDayCard/WeeklyDayCard";
 import "./WeeklyView.css";
@@ -10,9 +12,47 @@ type WeeklyViewProps = {
 };
 
 export function WeeklyView({ project, onBack }: WeeklyViewProps) {
+  const [openSessionDayIds, setOpenSessionDayIds] = useState<string[]>([]);
   const currentDay =
     project.weeklyDays.find((day) => day.status === "En cours") ??
     project.weeklyDays[0];
+  const openDays = openSessionDayIds
+    .map((dayId) => project.weeklyDays.find((day) => day.id === dayId))
+    .filter((day): day is Project["weeklyDays"][number] => Boolean(day));
+
+  useEffect(() => {
+    setOpenSessionDayIds([]);
+  }, [project.id]);
+
+  const handleDayOpen = (dayId: string) => {
+    setOpenSessionDayIds((currentDayIds) => {
+      if (currentDayIds.includes(dayId) || currentDayIds.length >= 2) {
+        return currentDayIds;
+      }
+
+      return [...currentDayIds, dayId];
+    });
+  };
+
+  const handleDayClose = (dayId: string) => {
+    setOpenSessionDayIds((currentDayIds) =>
+      currentDayIds.filter((currentId) => currentId !== dayId),
+    );
+  };
+
+  const handleDayToggle = (dayId: string) => {
+    setOpenSessionDayIds((currentDayIds) => {
+      if (currentDayIds.includes(dayId)) {
+        return currentDayIds.filter((currentId) => currentId !== dayId);
+      }
+
+      if (currentDayIds.length >= 2) {
+        return currentDayIds;
+      }
+
+      return [...currentDayIds, dayId];
+    });
+  };
 
   return (
     <section className="weekly-view-shell">
@@ -62,6 +102,12 @@ export function WeeklyView({ project, onBack }: WeeklyViewProps) {
                 label={day.label}
                 shortDate={day.shortDate}
                 status={day.status}
+                isOpen={openSessionDayIds.includes(day.id)}
+                isDisabled={
+                  openSessionDayIds.length > 0 &&
+                  !openSessionDayIds.includes(day.id)
+                }
+                onClick={() => handleDayOpen(day.id)}
               />
             ))}
           </div>
@@ -87,6 +133,15 @@ export function WeeklyView({ project, onBack }: WeeklyViewProps) {
         <span>◇ Donnees securisees</span>
         <span>Souverainete numerique</span>
       </footer>
+
+      <SessionOverlay
+        openDays={openDays}
+        allDays={project.weeklyDays}
+        project={project}
+        onCloseAll={() => setOpenSessionDayIds([])}
+        onCloseDay={handleDayClose}
+        onToggleDay={handleDayToggle}
+      />
     </section>
   );
 }

@@ -1,0 +1,298 @@
+.session-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.session-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 22, 0.62);
+  backdrop-filter: blur(14px) saturate(0.8);
+  pointer-events: auto;
+}
+
+.session-overlay-close-all {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 1;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(8, 14, 28, 0.92);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.session-overlay-mini-days {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 15px;
+  width: min(790px, calc(100% - 480px));
+  opacity: 0.78;
+  pointer-events: auto;
+}
+
+.session-overlay-mini-day {
+  appearance: none;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  min-height: 96px;
+  padding: 14px 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(9, 15, 29, 0.44);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.session-overlay-mini-day:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.session-overlay-mini-day:disabled {
+  cursor: not-allowed;
+  opacity: 0.34;
+}
+
+.session-overlay-mini-day.is-complete {
+  border-color: rgba(84, 214, 255, 0.18);
+}
+
+.session-overlay-mini-day.is-current {
+  border-color: rgba(181, 116, 255, 0.4);
+  background: rgba(22, 17, 39, 0.48);
+}
+
+.session-overlay-mini-day.is-open {
+  opacity: 1;
+}
+
+.session-overlay-mini-day.is-open.is-complete {
+  border-color: rgba(17, 224, 255, 0.8);
+  box-shadow: 0 0 18px rgba(17, 224, 255, 0.14);
+}
+
+.session-overlay-mini-day.is-open.is-current {
+  border-color: rgba(181, 116, 255, 0.82);
+  box-shadow: 0 0 18px rgba(181, 116, 255, 0.14);
+}
+
+.session-overlay-mini-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(244, 247, 251, 0.72);
+}
+
+.session-overlay-mini-day strong {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(244, 247, 251, 0.86);
+}
+
+.session-overlay-mini-indicator {
+  width: 18px;
+  height: 18px;
+  margin-top: 8px;
+  border: 2px solid rgba(103, 121, 158, 0.4);
+  border-radius: 50%;
+}
+
+.session-overlay-mini-day.is-complete .session-overlay-mini-indicator {
+  border-color: var(--accent-blue);
+  box-shadow: inset 0 0 0 4px rgba(84, 214, 255, 0.12);
+}
+
+.session-overlay-mini-day.is-current .session-overlay-mini-indicator {
+  border-color: #b574ff;
+  box-shadow: inset 0 0 0 4px rgba(181, 116, 255, 0.12);
+}
+
+.session-overlay-panel {
+  position: absolute;
+  top: 152px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 28px;
+  width: min(980px, calc(100% - 320px));
+  pointer-events: none;
+}
+
+.session-overlay-panel.is-single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 460px;
+}
+
+.session-overlay-panel.is-dual {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.session-focus-card {
+  min-height: 560px;
+  max-height: 670px;
+  padding: 22px 18px 18px;
+  border-radius: 22px;
+  background: rgba(7, 13, 26, 0.94);
+  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.32);
+  pointer-events: auto;
+}
+
+.session-focus-card.is-cyan {
+  border: 1px solid rgba(17, 224, 255, 0.9);
+  box-shadow:
+    0 14px 48px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(17, 224, 255, 0.14);
+}
+
+.session-focus-card.is-purple {
+  border: 1px solid rgba(181, 116, 255, 0.9);
+  box-shadow:
+    0 14px 48px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(181, 116, 255, 0.14);
+}
+
+.session-focus-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.session-focus-card-title-group,
+.session-focus-card-actions {
+  display: flex;
+  align-items: flex-start;
+}
+
+.session-focus-card-title-group {
+  gap: 14px;
+}
+
+.session-focus-card-title-group h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.session-focus-card-title-group p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--accent-blue);
+}
+
+.session-focus-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(244, 247, 251, 0.72);
+}
+
+.session-focus-card-actions {
+  gap: 10px;
+}
+
+.session-focus-card-status,
+.session-focus-card-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.session-focus-card-status {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(244, 247, 251, 0.86);
+}
+
+.session-focus-card-close {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.session-focus-card-scroll {
+  display: grid;
+  gap: 0;
+  margin-top: 18px;
+  padding-right: 6px;
+  max-height: 560px;
+  overflow: auto;
+}
+
+.session-focus-card-section {
+  padding: 18px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.session-focus-card-section h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.session-focus-card-section p,
+.session-focus-card-section li {
+  color: rgba(244, 247, 251, 0.8);
+  line-height: 1.5;
+}
+
+.session-focus-card-section p {
+  margin: 0;
+}
+
+.session-focus-card-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.session-focus-card-section li + li {
+  margin-top: 6px;
+}
+
+.session-focus-card-summary {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.session-overlay-note {
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  left: 0;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: calc(100% - 120px);
+  color: rgba(244, 247, 251, 0.72);
+  font-size: 15px;
+  text-align: center;
+}

@@ -1,4 +1,5 @@
 .weekly-day-card {
+  appearance: none;
   display: grid;
   justify-items: center;
   align-content: start;
@@ -12,6 +13,22 @@
     rgba(14, 22, 39, 0.92),
     rgba(10, 17, 31, 0.74)
   );
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.weekly-day-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.weekly-day-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .weekly-day-card.is-current {
@@ -26,6 +43,12 @@
 
 .weekly-day-card.is-complete {
   border-color: rgba(84, 214, 255, 0.2);
+}
+
+.weekly-day-card.is-open {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 18px rgba(255, 255, 255, 0.08);
 }
 
 .weekly-day-label {

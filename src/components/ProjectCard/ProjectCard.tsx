@@ -15,7 +15,6 @@ export function ProjectCard({
   isActive = false,
   onClick,
 }: ProjectCardProps) {
-  const dashOffset = 75.4 - (progress / 100) * 75.4;
   const className = ["project-card", isActive ? "active" : ""]
     .filter(Boolean)
     .join(" ");

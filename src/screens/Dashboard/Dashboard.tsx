@@ -1,26 +1,11 @@
-import { useState } from "react";
 import { ProjectCard } from "../../components/ProjectCard/ProjectCard";
 import { LastSynthesisCard } from "./components/LastSynthesisCard/LastSynthesisCard";
 import { NewProjectCard } from "./components/NewProjectCard/NewProjectCard";
 import { OverviewCard } from "./components/OverviewCard/OverviewCard";
 import { ProgressCard } from "./components/ProgressCard/ProgressCard";
 import { StatusCard } from "./components/StatusCard/StatusCard";
+import { projects, type Project } from "./projects";
 import "./Dashboard.css";
-
-type Project = {
-  id: string;
-  name: string;
-  lastActivity: string;
-  progress: number;
-  activeWeek: string;
-  completedDays: number;
-  weekCompletionLabel: string;
-  weeklyBars: number[];
-  synthesisTitle: string;
-  synthesisDate: string;
-  weeklySynthesisStatus: "Proposition" | "En relecture" | "Validee";
-  synthesisActionLabel: string;
-};
 
 const buildChartPoints = (values: number[]) =>
   values
@@ -31,69 +16,23 @@ const buildChartPoints = (values: number[]) =>
     })
     .join(" ");
 
-const projects: Project[] = [
-  {
-    id: "alpha",
-    name: "Projet Alpha",
-    lastActivity: "09 / 05 / 2025",
-    progress: 68,
-    activeWeek: "Semaine 12",
-    completedDays: 6,
-    weekCompletionLabel: "6 / 7 jours completes",
-    weeklyBars: [64, 82, 58, 74, 92, 48, 28],
-    synthesisTitle: "Synthese S11",
-    synthesisDate: "09 / 05 / 2025",
-    weeklySynthesisStatus: "En relecture",
-    synthesisActionLabel: "Relire",
-  },
-  {
-    id: "orion",
-    name: "Projet Orion",
-    lastActivity: "07 / 05 / 2025",
-    progress: 42,
-    activeWeek: "Semaine 10",
-    completedDays: 4,
-    weekCompletionLabel: "4 / 7 jours completes",
-    weeklyBars: [38, 52, 44, 61, 57, 20, 12],
-    synthesisTitle: "Synthese S09",
-    synthesisDate: "07 / 05 / 2025",
-    weeklySynthesisStatus: "Proposition",
-    synthesisActionLabel: "Ouvrir",
-  },
-  {
-    id: "nexus",
-    name: "Projet Nexus",
-    lastActivity: "05 / 05 / 2025",
-    progress: 87,
-    activeWeek: "Semaine 14",
-    completedDays: 7,
-    weekCompletionLabel: "7 / 7 jours completes",
-    weeklyBars: [84, 79, 88, 93, 86, 72, 64],
-    synthesisTitle: "Synthese S13",
-    synthesisDate: "05 / 05 / 2025",
-    weeklySynthesisStatus: "Validee",
-    synthesisActionLabel: "Consulter",
-  },
-];
+type DashboardProps = {
+  activeProjectId: string | null;
+  onOpenWeeklyView: (projectId: string) => void;
+  onProjectSelect: (project: Project) => void;
+};
 
-export function Dashboard() {
+export function Dashboard({
+  activeProjectId,
+  onOpenWeeklyView,
+  onProjectSelect,
+}: DashboardProps) {
   const initialProject = projects[0];
-  const [activeProject, setActiveProject] = useState(initialProject.id);
-  const [activeWeek, setActiveWeek] = useState(initialProject.activeWeek);
-  const [weeklySynthesisStatus, setWeeklySynthesisStatus] = useState(
-    initialProject.weeklySynthesisStatus,
-  );
-
   const selectedProject =
-    projects.find((project) => project.id === activeProject) ?? initialProject;
-  const weekProgress = Math.round((selectedProject.completedDays / 7) * 100);
-  const chartPoints = buildChartPoints(selectedProject.weeklyBars);
-
-  const handleProjectSelect = (project: Project) => {
-    setActiveProject(project.id);
-    setActiveWeek(project.activeWeek);
-    setWeeklySynthesisStatus(project.weeklySynthesisStatus);
-  };
+    projects.find((project) => project.id === activeProjectId) ?? null;
+  const displayProject = selectedProject ?? initialProject;
+  const weekProgress = Math.round((displayProject.completedDays / 7) * 100);
+  const chartPoints = buildChartPoints(displayProject.weeklyBars);
 
   return (
     <section className="chronos-shell">
@@ -127,25 +66,30 @@ export function Dashboard() {
 
           <section className="dashboard-grid">
             <StatusCard
-              activeWeek={activeWeek}
-              completedDays={selectedProject.completedDays}
-              weekCompletionLabel={selectedProject.weekCompletionLabel}
+              activeWeek={displayProject.activeWeek}
+              completedDays={displayProject.completedDays}
+              weekCompletionLabel={displayProject.weekCompletionLabel}
               weekProgress={weekProgress}
             />
             <ProgressCard chartPoints={chartPoints} />
             <LastSynthesisCard
-              synthesisTitle={selectedProject.synthesisTitle}
-              synthesisDate={selectedProject.synthesisDate}
-              weeklySynthesisStatus={weeklySynthesisStatus}
-              synthesisActionLabel={selectedProject.synthesisActionLabel}
+              synthesisTitle={displayProject.synthesisTitle}
+              synthesisDate={displayProject.synthesisDate}
+              weeklySynthesisStatus={displayProject.weeklySynthesisStatus}
+              synthesisActionLabel={displayProject.synthesisActionLabel}
             />
           </section>
         </div>
 
         <section className="bottom-layout-zone">
           <OverviewCard
-            projectName={selectedProject.name}
-            activeWeek={activeWeek}
+            projectName={selectedProject?.name ?? null}
+            activeWeek={selectedProject?.activeWeek ?? null}
+            onOpenWeeklyView={() => {
+              if (selectedProject) {
+                onOpenWeeklyView(selectedProject.id);
+              }
+            }}
           />
 
           {projects.map((project) => (
@@ -154,8 +98,8 @@ export function Dashboard() {
               name={project.name}
               lastActivity={project.lastActivity}
               progress={project.progress}
-              isActive={activeProject === project.id}
-              onClick={() => handleProjectSelect(project)}
+              isActive={activeProjectId === project.id}
+              onClick={() => onProjectSelect(project)}
             />
           ))}
           <NewProjectCard />

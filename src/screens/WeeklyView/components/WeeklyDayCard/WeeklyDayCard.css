@@ -1,0 +1,74 @@
+.weekly-day-card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 16px;
+  min-height: 344px;
+  padding: 38px 12px 26px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 22, 39, 0.92),
+    rgba(10, 17, 31, 0.74)
+  );
+}
+
+.weekly-day-card.is-current {
+  border-color: rgba(181, 116, 255, 0.86);
+  box-shadow: 0 0 24px rgba(181, 116, 255, 0.16);
+  background: linear-gradient(
+    180deg,
+    rgba(28, 22, 48, 0.96),
+    rgba(18, 14, 32, 0.78)
+  );
+}
+
+.weekly-day-card.is-complete {
+  border-color: rgba(84, 214, 255, 0.2);
+}
+
+.weekly-day-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(244, 247, 251, 0.94);
+}
+
+.weekly-day-card strong {
+  font-size: 20px;
+  font-weight: 500;
+  color: rgba(244, 247, 251, 0.92);
+}
+
+.weekly-day-indicator {
+  width: 42px;
+  height: 42px;
+  margin-top: 54px;
+  border: 3px solid rgba(103, 121, 158, 0.46);
+  border-radius: 50%;
+}
+
+.weekly-day-card.is-complete .weekly-day-indicator {
+  border-color: var(--accent-blue);
+  box-shadow: inset 0 0 0 8px rgba(84, 214, 255, 0.12);
+}
+
+.weekly-day-card.is-current .weekly-day-indicator {
+  border-color: #b574ff;
+  box-shadow: inset 0 0 0 8px rgba(181, 116, 255, 0.12);
+}
+
+.weekly-day-status {
+  margin-top: auto;
+  color: rgba(244, 247, 251, 0.72);
+  font-size: 16px;
+}
+
+.weekly-day-card.is-complete .weekly-day-status {
+  color: var(--accent-blue);
+}
+
+.weekly-day-card.is-current .weekly-day-status {
+  color: #c58cff;
+}

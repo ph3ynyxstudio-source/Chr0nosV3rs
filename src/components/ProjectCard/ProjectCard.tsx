@@ -48,24 +48,24 @@ export function ProjectCard({
           <span style={{ width: `${progress}%` }} />
         </div>
 
-        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+        <svg className="progress-ring" viewBox="0 0 36 36" aria-hidden="true">
           <circle
-            cx="14"
-            cy="14"
-            r="12"
+            cx="18"
+            cy="18"
+            r="15"
             stroke="var(--bg-card-glow)"
-            strokeWidth="3"
+            strokeWidth="4"
             fill="none"
           />
           <circle
-            cx="14"
-            cy="14"
-            r="12"
+            cx="18"
+            cy="18"
+            r="15"
             stroke={isActive ? "var(--accent-purple)" : "var(--accent-blue)"}
-            strokeWidth="3"
+            strokeWidth="4"
             fill="none"
-            strokeDasharray="75.4"
-            strokeDashoffset={dashOffset}
+            strokeDasharray="94.2"
+            strokeDashoffset={94.2 - (progress / 100) * 94.2}
           />
         </svg>
 

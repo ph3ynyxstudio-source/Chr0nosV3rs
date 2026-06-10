@@ -1,5 +1,8 @@
 .progress-card {
-  padding: 16px 18px 14px;
+  position: relative;
+  z-index: 1;
+  padding: clamp(28px, 1.05vw, 28px) clamp(2px, 1.1vw, 28px)
+    clamp(28px, 1vw, 24px);
   border: 1px solid rgba(84, 214, 255, 0.09);
   border-radius: 18px;
   background: linear-gradient(
@@ -12,8 +15,8 @@
 }
 
 .progress-card h2 {
-  margin: 0 0 8px;
-  font-size: 9px;
+  margin: 0 0 clamp(6px, 0.55vw, 8px);
+  font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--text-secondary);
@@ -28,8 +31,8 @@
 .progress-card-chart-shell {
   display: flex;
   align-items: center;
-  height: 64px;
-  margin-top: 2px;
+  height: clamp(64px, 4vw, 64px);
+  margin-top: clamp(20px, 0.15vw, 20px);
 }
 
 .progress-card-line-chart {
@@ -40,7 +43,7 @@
 .progress-card-line-chart-path {
   fill: none;
   stroke: #9d7eff;
-  stroke-width: 2.2;
+  stroke-width: clamp(2.2px, 0.18vw, 2.2px);
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: drop-shadow(0 0 10px rgba(157, 126, 255, 0.35));

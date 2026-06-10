@@ -1,9 +1,12 @@
 .project-card {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
-  padding: 18px 16px 16px;
+  padding: clamp(14px, 1.2vw, 18px) clamp(12px, 1vw, 16px)
+    clamp(12px, 1vw, 16px);
   border: 1px solid rgba(84, 214, 255, 0.08);
   border-radius: 18px;
   background: linear-gradient(
@@ -31,42 +34,51 @@
 }
 
 .project-card h3 {
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.project-card small,
-.project-card p,
-.project-progress-meta,
-.pct-text {
-  color: var(--text-secondary);
+  margin: 0 0 clamp(8px, 0.7vw, 12px);
+  font-size: clamp(27px, 3.1vw, 27px);
+  font-weight: 600;
 }
 
 .project-card small {
-  font-size: 10px;
+  font-size: clamp(14px, 0.95vw 15px);
+}
+
+.project-card p {
+  margin: 6px 0 0;
+  font-size: clamp(14px, 0.95vw, 16px);
+  line-height: 6;
+}
+
+.project-progress-meta {
+  margin-top: clamp(14px, 1vw, 18px);
+  font-size: clamp(13px, 0.95vw, 14px);
+}
+
+.pct-text {
+  font-size: clamp(14px, 1.2vw, 16px);
 }
 
 .project-card p {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: clamp(10px, 0.88vw, 12px);
+  line-height: 1.25;
 }
 
 .project-progress-meta {
-  margin-top: 16px;
-  font-size: 10px;
+  margin-top: clamp(10px, 0.9vw, 16px);
+  font-size: clamp(9px, 0.72vw, 10px);
 }
 
 .progress-container {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: clamp(6px, 0.7vw, 10px);
+  margin-top: clamp(6px, 0.6vw, 8px);
 }
 
 .progress-line {
-  height: 4px;
+  height: clamp(5px, 0.42vw, 7px);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
@@ -78,7 +90,18 @@
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
 }
-
+.progress-ring {
+  width: 42px;
+  height: 42px;
+}
 .pct-text {
-  font-size: 11px;
+  font-size: clamp(10px, 0.78vw, 11px);
+}
+.project-card small,
+.project-card p,
+.project-progress-meta,
+.project-progress-meta span,
+.project-card .pct-text {
+  font-size: 16px !important;
+  line-height: 1.35;
 }

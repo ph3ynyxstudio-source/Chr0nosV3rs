@@ -1,8 +1,11 @@
 .overview-card {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 22px 18px 16px;
+  padding: clamp(16px, 1.4vw, 22px) clamp(14px, 1.2vw, 18px)
+    clamp(14px, 1.1vw, 16px);
   border: 1px solid rgba(84, 214, 255, 0.09);
   border-radius: 18px;
   background: linear-gradient(
@@ -15,28 +18,28 @@
 }
 
 .overview-card h2 {
-  margin: 0 0 10px;
-  font-size: 10px;
+  margin: 0 0 clamp(6px, 0.6vw, 10px);
+  font-size: clamp(18px, 0.72vw, 18px);
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--text-secondary);
 }
 
 .overview-card p {
-  margin: 12px 0 0;
+  margin: clamp(28px, 0.8vw, 29px) 0 0;
   color: var(--text-secondary);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: clamp(14px, 0.82vw, 16px);
+  line-height: 1.35;
 }
 
 .overview-card button {
   width: 100%;
-  margin-top: 18px;
-  padding: 10px 12px;
+  margin-top: clamp(21px, 1vw, 28px);
+  padding: clamp(14px, 0.8vw, 14px) clamp(10px, 1vw, 12px);
   background: rgba(126, 92, 255, 0.14);
   border: 1px solid rgba(126, 92, 255, 0.24);
   border-radius: 10px;
   color: white;
   cursor: pointer;
-  font-size: 11px;
+  font-size: clamp(14px, 0.82vw, 14px);
 }

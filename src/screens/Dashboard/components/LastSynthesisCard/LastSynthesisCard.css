@@ -1,5 +1,8 @@
 .last-synthesis-card {
-  padding: 16px 18px 14px;
+  position: relative;
+  z-index: 1;
+  padding: clamp(26px, 1.05vw, 26px) clamp(28px, 1.1vw, 28px)
+    clamp(23px, 1.25vw, 23px);
   border: 1px solid rgba(84, 214, 255, 0.09);
   border-radius: 18px;
   background: linear-gradient(
@@ -12,8 +15,8 @@
 }
 
 .last-synthesis-card h2 {
-  margin: 0 0 8px;
-  font-size: 9px;
+  margin: 0 0 clamp(4px, 0.55vw, 6px);
+  font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--text-secondary);
@@ -22,47 +25,48 @@
 .last-synthesis-card-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: clamp(10px, 0.4vw, 10px);
   color: var(--accent-blue);
 }
 
 .last-synthesis-card strong {
   display: block;
-  margin-bottom: 0;
-  font-size: 14px;
+  margin-bottom: clamp(46px, 0.35vw, 46px);
+  font-size: clamp(15px, 1vw, 15px);
   font-weight: 500;
 }
 
 .last-synthesis-card small {
   display: inline-block;
-  margin-right: 10px;
+  margin-right: clamp(12px, 0.6vw, 10px);
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: clamp(16px, 0.72vw, 15px);
 }
 
 .last-synthesis-card-status {
   display: inline-flex;
   align-self: flex-start;
-  margin-top: 8px;
-  margin-left: 6px;
-  margin-right: 10px;
-  padding: 3px 8px;
-  border: 1px solid rgba(84, 214, 255, 0.16);
+  margin-top: clamp(8px, 0.6vw, 10px);
+  margin-left: clamp(10px, 8vw, 10px);
+  margin-right: clamp(10px, 0.6vw, 20px);
+  padding: clamp(6px, 0.2vw, 6px) clamp(8px, 0.6vw, 8px);
+  border: 1.9px solid rgba(84, 214, 255, 0.16);
   border-radius: 999px;
   color: var(--accent-blue);
   background: rgba(84, 214, 255, 0.06);
-  font-size: 9px;
+  font-size: clamp(13px, 0.68vw, 13px);
   line-height: 1;
 }
 
 .last-synthesis-card-action {
-  margin-top: 8px;
-  margin-left: 4px;
-  padding: 5px 12px;
+  margin-top: clamp(3px, 0.6vw, 3px);
+  margin-left: clamp(2px, 0.2vw, 4px);
+  padding: clamp(8px, 0.36vw, 10px) clamp(10px, 0.9vw, 12px);
   border: 1px solid rgba(126, 92, 255, 0.24);
   border-radius: 10px;
   color: white;
   background: rgba(126, 92, 255, 0.18);
   cursor: pointer;
-  font-size: 10px;
+  font-size: clamp(13px, 0.72vw, 13px);
+  align-self: flex-start;
 }

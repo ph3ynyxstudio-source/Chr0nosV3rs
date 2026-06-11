@@ -1,4 +1,10 @@
-export type WeeklyDayStatus = "Completee" | "En cours" | "A faire";
+export type WeeklyDayStatus = "Complétée" | "En cours" | "À créer" | "À faire";
+
+export type ProjectRawSession = {
+  date: string;
+  fileName: string;
+  content: string;
+};
 
 export type WeeklyDay = {
   id: string;
@@ -6,6 +12,9 @@ export type WeeklyDay = {
   date: string;
   shortDate: string;
   status: WeeklyDayStatus;
+  rawDateId?: string;
+  rawFileName?: string;
+  rawContent?: string;
 };
 
 export type Project = {
@@ -26,76 +35,201 @@ export type Project = {
   weeklyDays: WeeklyDay[];
 };
 
-export const initialProjects: Project[] = [
+const chr0nosVersRawModules = import.meta.glob<string>(
+  "/data/projects/chr0nosvers/raw/*.md",
   {
-    id: "chronosvers",
-    name: "Chr0nosVers",
-    lastActivity: "09 / 05 / 2025",
-    progress: 68,
-    activeWeek: "Semaine 12",
-    weekRangeLabel: "05 - 11 Mai 2025",
-    completedDays: 6,
-    weekCompletionLabel: "6 / 7 jours completes",
-    weeklyBars: [64, 82, 58, 74, 92, 48, 28],
-    synthesisTitle: "Synthese S11",
-    synthesisDate: "09 / 05 / 2025",
-    weeklySynthesisStatus: "En relecture",
-    synthesisActionLabel: "Relire",
-    weeklyContext: "Developpement du module d'authentification avancee.",
-    weeklyDays: [
-      { id: "mon", label: "Lundi", date: "05/05/2025", shortDate: "05/05", status: "Completee" },
-      { id: "tue", label: "Mardi", date: "06/05/2025", shortDate: "06/05", status: "Completee" },
-      { id: "wed", label: "Mercredi", date: "07/05/2025", shortDate: "07/05", status: "En cours" },
-      { id: "thu", label: "Jeudi", date: "08/05/2025", shortDate: "08/05", status: "A faire" },
-      { id: "fri", label: "Vendredi", date: "09/05/2025", shortDate: "09/05", status: "A faire" },
-      { id: "sat", label: "Samedi", date: "10/05/2025", shortDate: "10/05", status: "A faire" },
-      { id: "sun", label: "Dimanche", date: "11/05/2025", shortDate: "11/05", status: "A faire" },
-    ],
+    eager: true,
+    import: "default",
+    query: "?raw",
   },
-];
+);
 
-const formatUiDate = (date: Date) =>
+const formatIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const formatUiDate = formatIsoDate;
+
+const formatShortDate = (date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${day}/${month}`;
+};
+
+const formatFullDate = formatIsoDate;
+
+const formatRangeLabel = (startDate: Date, endDate: Date) => {
+  return `${formatIsoDate(startDate)} - ${formatIsoDate(endDate)}`;
+};
+
+const getWeekdayLabel = (date: Date) =>
   new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+    weekday: "long",
   })
     .format(date)
-    .replace(/\//g, " / ");
+    .replace(/^./, (value) => value.toUpperCase());
 
-const buildDefaultWeeklyDays = (baseDate: Date): WeeklyDay[] => {
-  const dayLabels = [
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
-    "Dimanche",
-  ];
+const parseRawDate = (dateValue: string) => {
+  const [year, month, day] = dateValue.split("-").map(Number);
 
-  return dayLabels.map((label, index) => {
-    const currentDate = new Date(baseDate);
-    currentDate.setDate(baseDate.getDate() + index);
-    const shortDate = new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-    }).format(currentDate);
-    const fullDate = new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(currentDate);
+  return new Date(year, month - 1, day);
+};
+
+const getWeekStart = (baseDate: Date) => {
+  const weekStart = new Date(baseDate);
+  const day = weekStart.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  weekStart.setDate(weekStart.getDate() + mondayOffset);
+  weekStart.setHours(0, 0, 0, 0);
+
+  return weekStart;
+};
+
+const buildRawSessionsFromModules = (
+  modules: Record<string, string>,
+): ProjectRawSession[] =>
+  Object.entries(modules)
+    .map(([filePath, content]) => {
+      const filePathParts = filePath.split("/");
+      const fileName = filePathParts[filePathParts.length - 1] ?? "";
+      const date = fileName.match(/^(\d{4}-\d{2}-\d{2})\.md$/)?.[1];
+
+      if (!date) {
+        return null;
+      }
+
+      return {
+        date,
+        fileName,
+        content,
+      };
+    })
+    .filter((session): session is ProjectRawSession => Boolean(session))
+    .sort((left, right) => left.date.localeCompare(right.date));
+
+export const initialChr0nosVersRawSessions =
+  buildRawSessionsFromModules(chr0nosVersRawModules);
+
+const buildWeeklyDaysForRange = (
+  startDate: Date,
+  sessions: ProjectRawSession[],
+  referenceDate = new Date(),
+): WeeklyDay[] => {
+  const todayIsoDate = formatIsoDate(referenceDate);
+  const sessionsByDate = new Map(
+    sessions.map((session) => [session.date, session]),
+  );
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + index);
+    const isoDate = formatIsoDate(currentDate);
+    const session = sessionsByDate.get(isoDate);
+    const isPastDay = isoDate < todayIsoDate;
+    const isToday = isoDate === todayIsoDate;
+    const status: WeeklyDayStatus = isPastDay
+      ? session
+        ? "Complétée"
+        : "À faire"
+      : isToday
+        ? session
+          ? "En cours"
+          : "À créer"
+        : "À faire";
 
     return {
-      id: `${label.toLowerCase().slice(0, 3)}-${index + 1}`,
-      label,
-      date: fullDate,
-      shortDate,
-      status: index === 0 ? "En cours" : "A faire",
+      id: session ? `raw-${isoDate}` : `empty-${isoDate}`,
+      label: getWeekdayLabel(currentDate),
+      date: formatFullDate(currentDate),
+      shortDate: formatShortDate(currentDate),
+      status,
+      rawDateId: session?.date,
+      rawFileName: session?.fileName,
+      rawContent: session?.content,
     };
   });
 };
+
+const buildWeeklyDataFromRawSessions = (
+  sessions: ProjectRawSession[],
+  fallbackBaseDate = new Date(),
+) => {
+  const startDate =
+    sessions.length > 0
+      ? parseRawDate(sessions[0].date)
+      : getWeekStart(fallbackBaseDate);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+
+  const weeklyDays = buildWeeklyDaysForRange(
+    startDate,
+    sessions,
+    fallbackBaseDate,
+  );
+  const detectedDays = weeklyDays.filter((day) => day.rawContent).length;
+  const latestRawDate = sessions[sessions.length - 1]?.date;
+  const latestDate = latestRawDate ? parseRawDate(latestRawDate) : fallbackBaseDate;
+
+  return {
+    weeklyDays,
+    weekRangeLabel: formatRangeLabel(startDate, endDate),
+    activeWeek: sessions.length > 0 ? "Semaine detectee" : "Semaine active",
+    lastActivity: sessions.length > 0 ? formatUiDate(latestDate) : "Aucune session",
+    synthesisDate: sessions.length > 0 ? formatUiDate(latestDate) : "A venir",
+    completedDays: detectedDays,
+    weekCompletionLabel: `${detectedDays} / 7 jours detectes`,
+    weeklyBars: weeklyDays.map((day) => {
+      if (day.status === "Complétée") {
+        return 100;
+      }
+
+      if (day.status === "En cours") {
+        return 72;
+      }
+
+      return 0;
+    }),
+  };
+};
+
+export const applyRawSessionsToProject = (
+  project: Project,
+  sessions: ProjectRawSession[],
+): Project => ({
+  ...project,
+  ...buildWeeklyDataFromRawSessions(sessions),
+});
+
+export const initialProjects: Project[] = [
+  applyRawSessionsToProject(
+    {
+      id: "chr0nosvers",
+      name: "Chr0nosVers",
+      lastActivity: "09 / 05 / 2025",
+      progress: 68,
+      activeWeek: "Semaine 12",
+      weekRangeLabel: "05 - 11 Mai 2025",
+      completedDays: 6,
+      weekCompletionLabel: "6 / 7 jours completes",
+      weeklyBars: [64, 82, 58, 74, 92, 48, 28],
+      synthesisTitle: "Synthese S11",
+      synthesisDate: "09 / 05 / 2025",
+      weeklySynthesisStatus: "En relecture",
+      synthesisActionLabel: "Relire",
+      weeklyContext: "Developpement du module d'authentification avancee.",
+      weeklyDays: [],
+    },
+    initialChr0nosVersRawSessions,
+  ),
+];
+
+const buildDefaultWeeklyDays = (baseDate: Date): WeeklyDay[] =>
+  buildWeeklyDaysForRange(getWeekStart(baseDate), [], baseDate);
 
 export function createProject({
   id,
@@ -113,8 +247,8 @@ export function createProject({
     activeWeek: "Semaine active",
     weekRangeLabel: "Semaine actuelle",
     completedDays: 0,
-    weekCompletionLabel: "0 / 7 jours completes",
-    weeklyBars: [14, 18, 12, 0, 0, 0, 0],
+    weekCompletionLabel: "0 / 7 jours detectes",
+    weeklyBars: [0, 0, 0, 0, 0, 0, 0],
     synthesisTitle: "Synthese a venir",
     synthesisDate: lastActivity,
     weeklySynthesisStatus: "Proposition",

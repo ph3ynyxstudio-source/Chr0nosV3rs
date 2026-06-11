@@ -2,12 +2,21 @@ import { useEffect, useState } from "react";
 import { Dashboard } from "./screens/Dashboard/Dashboard";
 import {
   buildNewProjectName,
+  applyRawSessionsToProject,
   createProject,
   formatProjectLastActivity,
   initialProjects,
   type Project,
 } from "./screens/Dashboard/projects";
 import { WeeklyView } from "./screens/WeeklyView/WeeklyView";
+import {
+  createProjectStorage,
+  deleteProjectStorage,
+  ensureProjectRawSession,
+  listProjectStorages,
+  readProjectRawSessions,
+  saveProjectRawSession,
+} from "./storage/projectStorage";
 import "./App.css";
 
 const DASHBOARD_WIDTH = 1620;
@@ -24,6 +33,23 @@ function getDashboardScale() {
     window.innerWidth / DASHBOARD_WIDTH,
     window.innerHeight / DASHBOARD_HEIGHT,
   );
+}
+
+function getLocalDayId(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function buildProjectFromStorage(projectId: string): Project {
+  return createProject({
+    id: projectId,
+    name: projectId,
+    lastActivity: "Projet local",
+    progress: 0,
+  });
 }
 
 function App() {
@@ -55,6 +81,61 @@ function App() {
   const activeProject =
     projects.find((project) => project.id === activeProjectId) ?? projects[0];
 
+  const refreshProjectRawSessions = async (projectId: string) => {
+    const rawSessions = await readProjectRawSessions(projectId);
+
+    setProjects((currentProjects) =>
+      currentProjects.map((project) =>
+        project.id === projectId
+          ? applyRawSessionsToProject(project, rawSessions)
+          : project,
+      ),
+    );
+  };
+
+  const handleOpenTodaySession = async (projectId: string) => {
+    const todayDayId = getLocalDayId();
+
+    try {
+      await ensureProjectRawSession(projectId, todayDayId);
+      await refreshProjectRawSessions(projectId);
+    } catch (error) {
+      window.alert(`Ouverture de la session impossible : ${String(error)}`);
+      return null;
+    }
+
+    return todayDayId;
+  };
+
+  const handleSaveRawSession = async (
+    projectId: string,
+    dayId: string,
+    content: string,
+  ) => {
+    await saveProjectRawSession({
+      projectId,
+      dayId,
+      content,
+    });
+    await refreshProjectRawSessions(projectId);
+  };
+
+  useEffect(() => {
+    const loadStoredProjects = async () => {
+      const projectIds = await listProjectStorages();
+
+      if (projectIds.length === 0) {
+        return;
+      }
+
+      const loadedProjects = projectIds.map(buildProjectFromStorage);
+      setProjects(loadedProjects);
+      setActiveProjectId(loadedProjects[0]?.id ?? null);
+    };
+
+    void loadStoredProjects();
+  }, []);
+
   const handleProjectSelect = (project: Project) => {
     setActiveProjectId(project.id);
   };
@@ -74,20 +155,45 @@ function App() {
     setNewProjectName("");
   };
 
-  const handleConfirmCreateProject = () => {
+  const handleConfirmCreateProject = async () => {
     const trimmedProjectName = newProjectName.trim();
 
     if (!trimmedProjectName) {
       return;
     }
 
+    const alreadyExists = projects.some(
+      (project) =>
+        project.id.toLocaleLowerCase() ===
+        trimmedProjectName.toLocaleLowerCase(),
+    );
+
+    if (alreadyExists) {
+      window.alert("Un projet avec ce nom existe deja.");
+      return;
+    }
+
     const createdAt = new Date();
     const nextProject = createProject({
-      id: `project-${createdAt.getTime()}`,
+      id: trimmedProjectName,
       name: trimmedProjectName,
       lastActivity: formatProjectLastActivity(createdAt),
       progress: 0,
     });
+
+    try {
+      const didCreateStorage = await createProjectStorage(nextProject.id);
+
+      if (!didCreateStorage) {
+        window.alert(
+          "Stockage local indisponible hors application Tauri : le dossier data/projects/ n'a pas ete cree.",
+        );
+        return;
+      }
+    } catch (error) {
+      window.alert(`Creation du stockage projet impossible : ${String(error)}`);
+      return;
+    }
 
     setProjects((currentProjects) => [...currentProjects, nextProject]);
     setActiveProjectId(nextProject.id);
@@ -95,7 +201,7 @@ function App() {
     setNewProjectName("");
   };
 
-  const handleDeleteProject = (project: Project) => {
+  const handleDeleteProject = async (project: Project) => {
     if (projects.length <= 1) {
       window.alert("Le dernier projet du MVP ne peut pas etre supprime.");
       return;
@@ -114,6 +220,20 @@ function App() {
     );
 
     if (!secondConfirmation) {
+      return;
+    }
+
+    try {
+      const didDeleteStorage = await deleteProjectStorage(project.id);
+
+      if (!didDeleteStorage) {
+        window.alert(
+          "Stockage local indisponible hors application Tauri : le dossier projet n'a pas ete supprime.",
+        );
+        return;
+      }
+    } catch (error) {
+      window.alert(`Suppression du stockage projet impossible : ${String(error)}`);
       return;
     }
 
@@ -153,6 +273,7 @@ function App() {
               onConfirmCreateProject={handleConfirmCreateProject}
               onDeleteProject={handleDeleteProject}
               onOpenWeeklyView={(projectId) => {
+                void refreshProjectRawSessions(projectId);
                 setActiveProjectId(projectId);
                 setActiveScreen("weekly");
               }}
@@ -160,6 +281,8 @@ function App() {
           ) : (
             <WeeklyView
               project={activeProject}
+              onOpenTodaySession={handleOpenTodaySession}
+              onSaveRawSession={handleSaveRawSession}
               onBack={() => setActiveScreen("dashboard")}
             />
           )}

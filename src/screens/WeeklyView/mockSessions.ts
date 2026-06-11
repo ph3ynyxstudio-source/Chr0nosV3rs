@@ -61,10 +61,12 @@ const sessionOverrides: Record<
 };
 
 const statusTone: Record<WeeklyDay["status"], string> = {
-  Completee: "La journee a consolide les elements prioritaires du chantier.",
+  Complétée: "La journee a consolide les elements prioritaires du chantier.",
   "En cours":
     "La journee reste active avec des arbitrages encore en progression.",
-  "A faire":
+  "À créer":
+    "La journee attend encore la creation de sa session locale.",
+  "À faire":
     "La journee est preparee comme prochaine etape concrete du projet.",
 };
 

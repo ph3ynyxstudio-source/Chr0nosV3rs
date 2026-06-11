@@ -8,13 +8,25 @@ import "./WeeklyView.css";
 
 type WeeklyViewProps = {
   project: Project;
+  onOpenTodaySession: (projectId: string) => Promise<string | null>;
+  onSaveRawSession: (
+    projectId: string,
+    dayId: string,
+    content: string,
+  ) => Promise<void>;
   onBack: () => void;
 };
 
-export function WeeklyView({ project, onBack }: WeeklyViewProps) {
+export function WeeklyView({
+  project,
+  onOpenTodaySession,
+  onSaveRawSession,
+  onBack,
+}: WeeklyViewProps) {
   const [openSessionDayIds, setOpenSessionDayIds] = useState<string[]>([]);
   const currentDay =
     project.weeklyDays.find((day) => day.status === "En cours") ??
+    project.weeklyDays.find((day) => day.status === "À créer") ??
     project.weeklyDays[0];
   const openDays = openSessionDayIds
     .map((dayId) => project.weeklyDays.find((day) => day.id === dayId))
@@ -52,6 +64,16 @@ export function WeeklyView({ project, onBack }: WeeklyViewProps) {
 
       return [...currentDayIds, dayId];
     });
+  };
+
+  const handleTodaySessionOpen = async () => {
+    const todayDayId = await onOpenTodaySession(project.id);
+
+    if (!todayDayId) {
+      return;
+    }
+
+    setOpenSessionDayIds([`raw-${todayDayId}`]);
   };
 
   return (
@@ -124,6 +146,7 @@ export function WeeklyView({ project, onBack }: WeeklyViewProps) {
           currentDayDate={currentDay.date}
           weeklyContext={project.weeklyContext}
           progress={project.progress}
+          onOpenSession={handleTodaySessionOpen}
         />
       </main>
 
@@ -135,11 +158,14 @@ export function WeeklyView({ project, onBack }: WeeklyViewProps) {
       </footer>
 
       <SessionOverlay
+        projectId={project.id}
         openDays={openDays}
         allDays={project.weeklyDays}
-        project={project}
         onCloseAll={() => setOpenSessionDayIds([])}
         onCloseDay={handleDayClose}
+        onSaveDay={(dayId, content) =>
+          onSaveRawSession(project.id, dayId, content)
+        }
         onToggleDay={handleDayToggle}
       />
     </section>

@@ -1,27 +1,73 @@
-import { type Project, type WeeklyDay } from "../../../Dashboard/projects";
-import { getMockSessionContent } from "../../mockSessions";
+import { useEffect, useState } from "react";
+import { type WeeklyDay } from "../../../Dashboard/projects";
 import "./SessionOverlay.css";
 
 type SessionOverlayProps = {
+  projectId: string;
   openDays: WeeklyDay[];
   allDays: WeeklyDay[];
-  project: Project;
   onCloseAll: () => void;
   onCloseDay: (dayId: string) => void;
+  onSaveDay: (dayId: string, content: string) => Promise<void>;
   onToggleDay: (dayId: string) => void;
 };
 
 export function SessionOverlay({
+  projectId,
   openDays,
   allDays,
-  project,
   onCloseAll,
   onCloseDay,
+  onSaveDay,
   onToggleDay,
 }: SessionOverlayProps) {
+  const [draftsByDayId, setDraftsByDayId] = useState<Record<string, string>>(
+    {},
+  );
+  const [savingDayId, setSavingDayId] = useState<string | null>(null);
+  const openDayDraftKey = openDays
+    .map((day) => `${day.id}:${day.rawContent ?? ""}`)
+    .join("|");
+
+  useEffect(() => {
+    setDraftsByDayId((currentDrafts) =>
+      Object.fromEntries(
+        openDays.map((day) => [
+          day.id,
+          currentDrafts[day.id] ?? day.rawContent ?? "",
+        ]),
+      ),
+    );
+  }, [openDayDraftKey]);
+
   if (openDays.length === 0) {
     return null;
   }
+
+  const handleDraftChange = (dayId: string, value: string) => {
+    setDraftsByDayId((currentDrafts) => ({
+      ...currentDrafts,
+      [dayId]: value,
+    }));
+  };
+
+  const handleSave = async (day: WeeklyDay) => {
+    if (!day.rawDateId) {
+      window.alert("Aucun fichier raw existant pour cette journee.");
+      return;
+    }
+
+    const draft = draftsByDayId[day.id] ?? "";
+    setSavingDayId(day.id);
+
+    try {
+      await onSaveDay(day.rawDateId, draft);
+    } catch (error) {
+      window.alert(`Sauvegarde impossible : ${String(error)}`);
+    } finally {
+      setSavingDayId(null);
+    }
+  };
 
   return (
     <div className="session-overlay">
@@ -41,7 +87,7 @@ export function SessionOverlay({
           const statusClass =
             day.status === "En cours"
               ? "is-current"
-              : day.status === "Completee"
+              : day.status === "Complétée"
                 ? "is-complete"
                 : "is-pending";
 
@@ -71,8 +117,10 @@ export function SessionOverlay({
           openDays.length === 1 ? "is-single" : "is-dual"
         }`}>
         {openDays.map((day, index) => {
-          const content = getMockSessionContent(project, day);
           const accentClass = index === 0 ? "is-cyan" : "is-purple";
+          const draft = draftsByDayId[day.id] ?? day.rawContent ?? "";
+          const isSaving = savingDayId === day.id;
+          const canSave = Boolean(day.rawDateId) && !isSaving;
 
           return (
             <article
@@ -93,6 +141,13 @@ export function SessionOverlay({
                   <span className="session-focus-card-status">{day.status}</span>
                   <button
                     type="button"
+                    className="session-focus-card-save"
+                    onClick={() => void handleSave(day)}
+                    disabled={!canSave}>
+                    {isSaving ? "Enregistrement..." : "Enregistrer"}
+                  </button>
+                  <button
+                    type="button"
                     className="session-focus-card-close"
                     onClick={() => onCloseDay(day.id)}>
                     Fermer
@@ -101,51 +156,27 @@ export function SessionOverlay({
               </header>
 
               <div className="session-focus-card-scroll">
-                <section className="session-focus-card-section">
-                  <h4>Contexte</h4>
-                  <p>{content.context}</p>
-                </section>
-
-                <section className="session-focus-card-section">
-                  <h4>Realise</h4>
-                  <ul>
-                    {content.completed.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section className="session-focus-card-section">
-                  <h4>Decouvertes</h4>
-                  <ul>
-                    {content.discoveries.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section className="session-focus-card-section">
-                  <h4>Blocages</h4>
-                  <ul>
-                    {content.blockers.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section className="session-focus-card-section">
-                  <h4>Suite</h4>
-                  <ul>
-                    {content.nextSteps.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section className="session-focus-card-section session-focus-card-summary">
-                  <h4>Resume en une phrase</h4>
-                  <p>{content.summary}</p>
-                </section>
+                {day.rawDateId ? (
+                  <section className="session-focus-card-section">
+                    <h4>{day.rawFileName ?? "Session markdown"}</h4>
+                    <textarea
+                      className="session-focus-card-markdown-editor"
+                      value={draft}
+                      onChange={(event) =>
+                        handleDraftChange(day.id, event.target.value)
+                      }
+                      aria-label={`Markdown brut ${projectId} ${day.date}`}
+                    />
+                  </section>
+                ) : (
+                  <section className="session-focus-card-section session-focus-card-summary">
+                    <h4>Session vide</h4>
+                    <p>
+                      Aucun fichier raw markdown n'est disponible pour cette
+                      journee.
+                    </p>
+                  </section>
+                )}
               </div>
             </article>
           );

@@ -15,7 +15,7 @@ const getStatusClassName = (status: WeeklyDayStatus) => {
     return "is-current";
   }
 
-  if (status === "Completee") {
+  if (status === "Complétée") {
     return "is-complete";
   }
 

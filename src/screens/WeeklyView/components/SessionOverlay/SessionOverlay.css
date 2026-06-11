@@ -216,6 +216,7 @@
 }
 
 .session-focus-card-status,
+.session-focus-card-save,
 .session-focus-card-close {
   display: inline-flex;
   align-items: center;
@@ -230,6 +231,18 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
   color: rgba(244, 247, 251, 0.86);
+}
+
+.session-focus-card-save {
+  border: 1px solid rgba(17, 224, 255, 0.28);
+  background: rgba(17, 224, 255, 0.1);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.session-focus-card-save:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .session-focus-card-close {
@@ -267,6 +280,31 @@
 
 .session-focus-card-section p {
   margin: 0;
+}
+
+.session-focus-card-markdown {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.session-focus-card-markdown-editor {
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(244, 247, 251, 0.84);
+  font: inherit;
+  line-height: 1.5;
+  padding: 14px;
+  outline: none;
+  white-space: pre-wrap;
+}
+
+.session-focus-card-markdown-editor:focus {
+  border-color: rgba(17, 224, 255, 0.5);
+  box-shadow: 0 0 18px rgba(17, 224, 255, 0.08);
 }
 
 .session-focus-card-section ul {

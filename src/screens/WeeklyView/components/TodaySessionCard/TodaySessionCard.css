@@ -57,8 +57,13 @@
   letter-spacing: 0.06em;
 }
 
-.weekly-side-action {
+.weekly-side-actions {
   margin-top: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.weekly-side-action {
   min-height: 62px;
   border: 1px solid rgba(17, 224, 255, 0.4);
   border-radius: 14px;
@@ -72,6 +77,13 @@
 .weekly-side-action-purple {
   border-color: rgba(173, 89, 255, 0.4);
   background: rgba(84, 40, 135, 0.48);
+}
+
+.weekly-side-action-secondary {
+  min-height: 52px;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 15px;
 }
 
 .weekly-progress-row {

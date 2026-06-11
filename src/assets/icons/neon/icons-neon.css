@@ -1,0 +1,19 @@
+.icon-neon {
+  --icon-neon-color: currentColor;
+  --icon-neon-glow: rgba(244, 247, 251, 0.24);
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  color: var(--icon-neon-color);
+  filter: drop-shadow(0 0 6px var(--icon-neon-glow));
+}
+
+.icon-mauve {
+  --icon-neon-color: #b574ff;
+  --icon-neon-glow: rgba(181, 116, 255, 0.44);
+}
+
+.icon-cyan {
+  --icon-neon-color: #11e0ff;
+  --icon-neon-glow: rgba(17, 224, 255, 0.42);
+}

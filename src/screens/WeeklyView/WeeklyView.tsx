@@ -28,9 +28,25 @@ export function WeeklyView({
     project.weeklyDays.find((day) => day.status === "En cours") ??
     project.weeklyDays.find((day) => day.status === "À créer") ??
     project.weeklyDays[0];
+  const currentDayId = currentDay?.id;
   const openDays = openSessionDayIds
     .map((dayId) => project.weeklyDays.find((day) => day.id === dayId))
-    .filter((day): day is Project["weeklyDays"][number] => Boolean(day));
+    .filter((day): day is Project["weeklyDays"][number] => Boolean(day))
+    .sort((leftDay, rightDay) => {
+      if (openSessionDayIds.length < 2) {
+        return 0;
+      }
+
+      if (leftDay.id === currentDayId) {
+        return 1;
+      }
+
+      if (rightDay.id === currentDayId) {
+        return -1;
+      }
+
+      return 0;
+    });
 
   useEffect(() => {
     setOpenSessionDayIds([]);

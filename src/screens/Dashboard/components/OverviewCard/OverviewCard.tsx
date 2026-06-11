@@ -15,7 +15,7 @@ export function OverviewCard({
 
   return (
     <article className="overview-card">
-      <h2>Vue globale des projets</h2>
+      <h2>Vue hebdomadaire du projet</h2>
       <p>
         {hasSelectedProject
           ? `${projectName} est selectionne pour ${activeWeek?.toLowerCase()}.`

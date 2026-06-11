@@ -171,18 +171,20 @@ const buildWeeklyDataFromRawSessions = (
     sessions,
     fallbackBaseDate,
   );
-  const detectedDays = weeklyDays.filter((day) => day.rawContent).length;
+  const completedDays = weeklyDays.filter(
+    (day) => day.status === "Complétée",
+  ).length;
   const latestRawDate = sessions[sessions.length - 1]?.date;
   const latestDate = latestRawDate ? parseRawDate(latestRawDate) : fallbackBaseDate;
 
   return {
     weeklyDays,
     weekRangeLabel: formatRangeLabel(startDate, endDate),
-    activeWeek: sessions.length > 0 ? "Semaine detectee" : "Semaine active",
+    activeWeek: sessions.length > 0 ? "Semaine détectée" : "Semaine active",
     lastActivity: sessions.length > 0 ? formatUiDate(latestDate) : "Aucune session",
     synthesisDate: sessions.length > 0 ? formatUiDate(latestDate) : "A venir",
-    completedDays: detectedDays,
-    weekCompletionLabel: `${detectedDays} / 7 jours detectes`,
+    completedDays,
+    weekCompletionLabel: `${completedDays} / 7 jours complétés`,
     weeklyBars: weeklyDays.map((day) => {
       if (day.status === "Complétée") {
         return 100;
@@ -215,9 +217,9 @@ export const initialProjects: Project[] = [
       activeWeek: "Semaine 12",
       weekRangeLabel: "05 - 11 Mai 2025",
       completedDays: 6,
-      weekCompletionLabel: "6 / 7 jours completes",
+      weekCompletionLabel: "6 / 7 jours complétés",
       weeklyBars: [64, 82, 58, 74, 92, 48, 28],
-      synthesisTitle: "Synthese S11",
+      synthesisTitle: "Synthèse S11",
       synthesisDate: "09 / 05 / 2025",
       weeklySynthesisStatus: "En relecture",
       synthesisActionLabel: "Relire",
@@ -247,9 +249,9 @@ export function createProject({
     activeWeek: "Semaine active",
     weekRangeLabel: "Semaine actuelle",
     completedDays: 0,
-    weekCompletionLabel: "0 / 7 jours detectes",
+    weekCompletionLabel: "0 / 7 jours complétés",
     weeklyBars: [0, 0, 0, 0, 0, 0, 0],
-    synthesisTitle: "Synthese a venir",
+    synthesisTitle: "Synthèse à venir",
     synthesisDate: lastActivity,
     weeklySynthesisStatus: "Proposition",
     synthesisActionLabel: "Ouvrir",

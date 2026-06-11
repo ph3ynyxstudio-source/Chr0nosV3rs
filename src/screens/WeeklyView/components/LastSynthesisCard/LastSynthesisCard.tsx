@@ -15,8 +15,8 @@ export function LastSynthesisCard({
 }: LastSynthesisCardProps) {
   return (
     <aside className="weekly-side-card weekly-side-card-left">
-      <p className="weekly-card-kicker">Derniere synthese validee</p>
-      <h2>Synthese hebdomadaire</h2>
+      <p className="weekly-card-kicker">Dernière synthèse validée</p>
+      <h2>Synthèse hebdomadaire</h2>
       <p className="weekly-card-project-name">{projectName}</p>
 
       <div className="weekly-side-block">

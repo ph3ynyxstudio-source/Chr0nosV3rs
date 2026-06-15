@@ -1,6 +1,10 @@
 .last-synthesis-card {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   padding: clamp(26px, 1.05vw, 26px) clamp(28px, 1.1vw, 28px)
     clamp(23px, 1.25vw, 23px);
   border: 1px solid rgba(84, 214, 255, 0.09);
@@ -31,32 +35,60 @@
 
 .last-synthesis-card strong {
   display: block;
-  margin-bottom: clamp(46px, 0.35vw, 46px);
+  margin-bottom: clamp(10px, 0.8vw, 14px);
   font-size: clamp(15px, 1vw, 15px);
   font-weight: 500;
 }
 
 .last-synthesis-card small {
   display: inline-block;
-  margin-right: clamp(12px, 0.6vw, 10px);
   color: var(--text-secondary);
   font-size: clamp(16px, 0.72vw, 15px);
 }
 
+.last-synthesis-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(10px, 0.8vw, 12px);
+  margin-top: auto;
+  min-height: 0;
+}
+
+.last-synthesis-card-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(8px, 0.7vw, 10px);
+  min-width: 0;
+}
+
+.last-synthesis-card.is-pending .last-synthesis-card-footer {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: clamp(10px, 0.8vw, 12px);
+}
+
 .last-synthesis-card-message {
-  min-height: 38px;
-  margin: 0 0 clamp(8px, 0.5vw, 8px);
+  max-width: 235px;
+  margin: 0;
   color: var(--text-secondary);
   font-size: clamp(13px, 0.68vw, 13px);
   line-height: 1.45;
 }
 
+.last-synthesis-card-partial {
+  width: 100%;
+  margin: 0;
+  color: rgba(244, 247, 251, 0.58);
+  font-size: clamp(12px, 0.64vw, 12px);
+  line-height: 1.35;
+}
+
 .last-synthesis-card-status {
   display: inline-flex;
   align-self: flex-start;
-  margin-top: clamp(8px, 0.6vw, 10px);
-  margin-left: clamp(10px, 8vw, 10px);
-  margin-right: clamp(10px, 0.6vw, 20px);
+  margin: 0;
   padding: clamp(6px, 0.2vw, 6px) clamp(8px, 0.6vw, 8px);
   border: 1.9px solid rgba(84, 214, 255, 0.16);
   border-radius: 999px;
@@ -67,8 +99,8 @@
 }
 
 .last-synthesis-card-action {
-  margin-top: clamp(3px, 0.6vw, 3px);
-  margin-left: clamp(2px, 0.2vw, 4px);
+  flex: 0 0 auto;
+  margin: 0;
   padding: clamp(8px, 0.36vw, 10px) clamp(10px, 0.9vw, 12px);
   border: 1px solid rgba(126, 92, 255, 0.24);
   border-radius: 10px;

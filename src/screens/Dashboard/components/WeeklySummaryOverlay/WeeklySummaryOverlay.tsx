@@ -1,3 +1,4 @@
+import calendarNeonIcon from "../../../../assets/icons/neon/calendar-neon.svg?raw";
 import { type WeeklySummary } from "../../projects";
 import "../../../WeeklyView/components/SessionOverlay/SessionOverlay.css";
 import "./WeeklySummaryOverlay.css";
@@ -22,6 +23,29 @@ const formatSummaryDate = (value: string) => {
     month: "long",
     year: "numeric",
   }).format(new Date(year, month - 1, day));
+};
+
+function NeonIcon({ className, svg }: { className: string; svg: string }) {
+  return (
+    <span
+      className={className}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
+
+const getPartialSummaryLabel = (weeklySummary: WeeklySummary) => {
+  const sessionCount = weeklySummary.meta.session_count;
+  const expectedSessionCount = weeklySummary.meta.expected_session_count ?? 7;
+  const isPartial =
+    weeklySummary.meta.is_partial ?? sessionCount < expectedSessionCount;
+
+  if (!isPartial) {
+    return null;
+  }
+
+  return `Synthèse partielle — ${sessionCount} / ${expectedSessionCount} sessions utilisées`;
 };
 
 const SummaryList = ({
@@ -62,6 +86,7 @@ export function WeeklySummaryOverlay({
   const nextItems = weeklySummary.next?.length
     ? weeklySummary.next
     : weeklySummary.notes;
+  const partialSummaryLabel = getPartialSummaryLabel(weeklySummary);
 
   return (
     <div className="session-overlay weekly-summary-overlay">
@@ -79,11 +104,19 @@ export function WeeklySummaryOverlay({
           <header className="session-focus-card-header">
             <div className="session-focus-card-title-group">
               <span className="session-focus-card-icon" aria-hidden="true">
-                []
+                <NeonIcon
+                  className="session-focus-card-svg-icon"
+                  svg={calendarNeonIcon}
+                />
               </span>
               <div>
                 <h3>Synthèse hebdomadaire</h3>
                 <p>{formatSummaryDate(weeklySummary.meta.created_at)}</p>
+                {partialSummaryLabel ? (
+                  <p className="weekly-summary-partial">
+                    {partialSummaryLabel}
+                  </p>
+                ) : null}
               </div>
             </div>
 

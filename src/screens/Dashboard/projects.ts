@@ -10,6 +10,8 @@ export type WeeklySummary = {
   meta: {
     created_at: string;
     session_count: number;
+    expected_session_count?: number;
+    is_partial?: boolean;
   };
   progression?: string[];
   achievements: string[];
@@ -99,6 +101,19 @@ const emptySessionSectionHeadings = [
   "🧭 Résumé en une phrase",
 ];
 
+const emptySessionGuideLines = [
+  "Capacités observées aujourd'hui (optionnel) :",
+  "- Analyse",
+  "- Documentation",
+  "- Débogage",
+  "- Organisation",
+  "- Communication",
+  "- Créativité",
+  "- Recherche",
+  "- Résolution de problème",
+  "Quelles capacités crois-tu avoir utilisées ou développées aujourd'hui ?",
+];
+
 const normalizeHeadingLine = (line: string) =>
   line.replace(/^(#\s*)+/, "").trim();
 
@@ -115,6 +130,10 @@ export const hasMeaningfulSessionContent = (content: string) =>
       }
 
       if (emptySessionSectionHeadings.includes(heading)) {
+        return false;
+      }
+
+      if (emptySessionGuideLines.includes(line)) {
         return false;
       }
 
@@ -289,7 +308,7 @@ export const buildWeeklyDataFromRawSessions = (
     sessions.map((session) => [session.date, session]),
   );
   const hasWeekSession = weeklyDays.some((day) => day.hasMeaningfulSession);
-  const canGenerateWeeklySummary = getPreviousWeekDateIds(fallbackBaseDate).every(
+  const canGenerateWeeklySummary = getPreviousWeekDateIds(fallbackBaseDate).some(
     (dateId) => {
       const session = sessionsByDate.get(dateId);
 

@@ -6,6 +6,8 @@ use std::{fs, path::PathBuf};
 use tauri::Manager;
 
 const PROJECT_DATA_SUBDIRS: [&str; 5] = ["raw", "weekly", "monthly", "quarterly", "archives"];
+const EXPECTED_WEEKLY_SESSION_COUNT: usize = 7;
+const NO_PREVIOUS_WEEK_SESSION_MESSAGE: &str = "Aucune session trouvée pour la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
 
 const EMPTY_SESSION_TEMPLATE_SECTIONS: [&str; 7] = [
     "📌 Contexte",
@@ -17,12 +19,29 @@ const EMPTY_SESSION_TEMPLATE_SECTIONS: [&str; 7] = [
     "🧭 Résumé en une phrase",
 ];
 
+const APPRENTISSAGES_GUIDE_LINES: [&str; 10] = [
+    "Capacités observées aujourd'hui (optionnel) :",
+    "- Analyse",
+    "- Documentation",
+    "- Débogage",
+    "- Organisation",
+    "- Communication",
+    "- Créativité",
+    "- Recherche",
+    "- Résolution de problème",
+    "Quelles capacités crois-tu avoir utilisées ou développées aujourd'hui ?",
+];
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RawSession {
     date: String,
     file_name: String,
     content: String,
+}
+
+struct WeeklyInput {
+    folder: PathBuf,
 }
 
 fn data_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -146,6 +165,51 @@ fn is_markdown_session_file(file_name: &str) -> bool {
         })
 }
 
+fn normalize_heading_line(line: &str) -> String {
+    line.trim()
+        .trim_start_matches(|character| character == '#' || character == ' ')
+        .trim()
+        .to_string()
+}
+
+fn is_date_heading(value: &str) -> bool {
+    value.len() == "2026-06-10".len()
+        && value.chars().enumerate().all(|(index, character)| {
+            if index == 4 || index == 7 {
+                character == '-'
+            } else {
+                character.is_ascii_digit()
+            }
+        })
+}
+
+fn has_meaningful_session_content(content: &str) -> bool {
+    content
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .any(|line| {
+            let heading = normalize_heading_line(line);
+
+            if is_date_heading(&heading) {
+                return false;
+            }
+
+            if EMPTY_SESSION_TEMPLATE_SECTIONS.contains(&heading.as_str()) {
+                return false;
+            }
+
+            if APPRENTISSAGES_GUIDE_LINES.contains(&line) {
+                return false;
+            }
+
+            !line
+                .trim_start_matches(|character| character == '-' || character == '*')
+                .trim()
+                .is_empty()
+        })
+}
+
 fn previous_week_dates_for(today: NaiveDate) -> Vec<NaiveDate> {
     let current_week_start =
         today - Duration::days(today.weekday().num_days_from_sunday() as i64);
@@ -161,7 +225,14 @@ fn previous_week_dates() -> Vec<NaiveDate> {
 }
 
 fn prepare_previous_week_input(project_id: &str, raw_dir: &PathBuf) -> Result<PathBuf, String> {
-    let target_dates = previous_week_dates();
+    prepare_week_input_for_dates(project_id, raw_dir, previous_week_dates()).map(|input| input.folder)
+}
+
+fn prepare_week_input_for_dates(
+    project_id: &str,
+    raw_dir: &PathBuf,
+    target_dates: Vec<NaiveDate>,
+) -> Result<WeeklyInput, String> {
     let mut source_files = Vec::new();
 
     for date in target_dates {
@@ -169,12 +240,21 @@ fn prepare_previous_week_input(project_id: &str, raw_dir: &PathBuf) -> Result<Pa
         let source_file = raw_dir.join(&file_name);
 
         if !source_file.exists() {
-            return Err(
-                "synthese disponible lorsque la semaine precedente est complete".to_string(),
-            );
+            continue;
+        }
+
+        let content = fs::read_to_string(&source_file)
+            .map_err(|error| format!("lecture fichier {file_name} echouee: {error}"))?;
+
+        if !has_meaningful_session_content(&content) {
+            continue;
         }
 
         source_files.push((file_name, source_file));
+    }
+
+    if source_files.is_empty() {
+        return Err(NO_PREVIOUS_WEEK_SESSION_MESSAGE.to_string());
     }
 
     let temp_dir = std::env::temp_dir().join(format!(
@@ -191,7 +271,37 @@ fn prepare_previous_week_input(project_id: &str, raw_dir: &PathBuf) -> Result<Pa
             .map_err(|error| format!("copie session {file_name} echouee: {error}"))?;
     }
 
-    Ok(temp_dir)
+    Ok(WeeklyInput { folder: temp_dir })
+}
+
+fn enrich_weekly_summary_metadata(json: &str, output_file: &PathBuf) -> Result<String, String> {
+    let mut value = serde_json::from_str::<serde_json::Value>(json)
+        .map_err(|error| format!("JSON weekly invalide: {error}"))?;
+    let meta = value
+        .get_mut("meta")
+        .and_then(serde_json::Value::as_object_mut)
+        .ok_or_else(|| "JSON weekly invalide: meta manquant".to_string())?;
+    let session_count = meta
+        .get("session_count")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+
+    meta.insert(
+        "expected_session_count".to_string(),
+        serde_json::Value::from(EXPECTED_WEEKLY_SESSION_COUNT),
+    );
+    meta.insert(
+        "is_partial".to_string(),
+        serde_json::Value::from(session_count < EXPECTED_WEEKLY_SESSION_COUNT as u64),
+    );
+
+    let enriched_json = serde_json::to_string_pretty(&value)
+        .map_err(|error| format!("serialisation synthese weekly echouee: {error}"))?;
+
+    fs::write(output_file, &enriched_json)
+        .map_err(|error| format!("ecriture synthese weekly enrichie echouee: {error}"))?;
+
+    Ok(enriched_json)
 }
 
 #[cfg(test)]
@@ -213,6 +323,113 @@ mod tests {
         );
         assert_eq!(dates.len(), 7);
     }
+
+    #[test]
+    fn previous_week_input_accepts_one_meaningful_session() {
+        let raw_dir = std::env::temp_dir().join(format!(
+            "chronosvers-test-raw-{}",
+            Local::now().timestamp_millis()
+        ));
+        fs::create_dir_all(&raw_dir).unwrap();
+        fs::write(raw_dir.join("2026-06-07.md"), empty_session_template("2026-06-07")).unwrap();
+        fs::write(
+            raw_dir.join("2026-06-08.md"),
+            "# 2026-06-08\n\n# ✅ Réalisé\n\n- Une vraie session de travail.\n",
+        )
+        .unwrap();
+        let input = prepare_week_input_for_dates(
+            "test",
+            &raw_dir,
+            previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()),
+        )
+        .unwrap();
+
+        assert!(input.folder.join("2026-06-08.md").exists());
+        assert!(!input.folder.join("2026-06-07.md").exists());
+
+        let _ = fs::remove_dir_all(input.folder);
+        let _ = fs::remove_dir_all(raw_dir);
+    }
+
+    #[test]
+    fn previous_week_input_blocks_without_meaningful_session() {
+        let raw_dir = std::env::temp_dir().join(format!(
+            "chronosvers-test-empty-{}",
+            Local::now().timestamp_millis()
+        ));
+        fs::create_dir_all(&raw_dir).unwrap();
+        fs::write(raw_dir.join("2026-06-07.md"), empty_session_template("2026-06-07")).unwrap();
+        let result = prepare_week_input_for_dates(
+            "test",
+            &raw_dir,
+            previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()),
+        );
+
+        assert_eq!(result.err().unwrap(), NO_PREVIOUS_WEEK_SESSION_MESSAGE);
+
+        let _ = fs::remove_dir_all(raw_dir);
+    }
+
+    #[test]
+    fn previous_week_input_accepts_complete_week() {
+        let raw_dir = std::env::temp_dir().join(format!(
+            "chronosvers-test-full-{}",
+            Local::now().timestamp_millis()
+        ));
+        fs::create_dir_all(&raw_dir).unwrap();
+
+        for date in previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()) {
+            let day_id = date.format("%Y-%m-%d").to_string();
+            fs::write(
+                raw_dir.join(format!("{day_id}.md")),
+                format!("# {day_id}\n\n# ✅ Réalisé\n\n- Travail réel du jour.\n"),
+            )
+            .unwrap();
+        }
+
+        let input = prepare_week_input_for_dates(
+            "test",
+            &raw_dir,
+            previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()),
+        )
+        .unwrap();
+        let copied_count = fs::read_dir(&input.folder).unwrap().count();
+
+        assert_eq!(copied_count, EXPECTED_WEEKLY_SESSION_COUNT);
+
+        let _ = fs::remove_dir_all(input.folder);
+        let _ = fs::remove_dir_all(raw_dir);
+    }
+
+    #[test]
+    fn previous_week_input_accepts_three_meaningful_sessions() {
+        let raw_dir = std::env::temp_dir().join(format!(
+            "chronosvers-test-partial-{}",
+            Local::now().timestamp_millis()
+        ));
+        fs::create_dir_all(&raw_dir).unwrap();
+
+        for day_id in ["2026-06-07", "2026-06-09", "2026-06-11"] {
+            fs::write(
+                raw_dir.join(format!("{day_id}.md")),
+                format!("# {day_id}\n\n# ✅ Réalisé\n\n- Travail réel du jour.\n"),
+            )
+            .unwrap();
+        }
+
+        let input = prepare_week_input_for_dates(
+            "test",
+            &raw_dir,
+            previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()),
+        )
+        .unwrap();
+        let copied_count = fs::read_dir(&input.folder).unwrap().count();
+
+        assert_eq!(copied_count, 3);
+
+        let _ = fs::remove_dir_all(input.folder);
+        let _ = fs::remove_dir_all(raw_dir);
+    }
 }
 
 fn empty_session_template(day_id: &str) -> String {
@@ -220,6 +437,21 @@ fn empty_session_template(day_id: &str) -> String {
 
     for section in EMPTY_SESSION_TEMPLATE_SECTIONS {
         content.push_str(&format!("# {section}\n\n"));
+
+        if section == "📚 Apprentissages" {
+            content.push_str("Capacités observées aujourd'hui (optionnel) :\n\n");
+            content.push_str("- Analyse\n");
+            content.push_str("- Documentation\n");
+            content.push_str("- Débogage\n");
+            content.push_str("- Organisation\n");
+            content.push_str("- Communication\n");
+            content.push_str("- Créativité\n");
+            content.push_str("- Recherche\n");
+            content.push_str("- Résolution de problème\n\n");
+            content.push_str(
+                "Quelles capacités crois-tu avoir utilisées ou développées aujourd'hui ?\n\n",
+            );
+        }
     }
 
     content
@@ -400,7 +632,8 @@ fn generate_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<
         .map_err(|error| format!("creation dossier weekly echouee: {error}"))?;
 
     let input_folder = prepare_previous_week_input(&project_id, &raw_dir)?;
-    let result = runner::run_weekly_summary(&weekly_script_path(&app)?, &input_folder, &output_file);
+    let result = runner::run_weekly_summary(&weekly_script_path(&app)?, &input_folder, &output_file)
+        .and_then(|json| enrich_weekly_summary_metadata(&json, &output_file));
 
     let _ = fs::remove_dir_all(&input_folder);
 

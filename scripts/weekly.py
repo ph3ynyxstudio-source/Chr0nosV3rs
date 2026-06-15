@@ -51,6 +51,19 @@ GROUP_KEYWORDS = (
     ("build", "cargo", "npm", "verification"),
 )
 
+TEMPLATE_GUIDE_LINES = {
+    "Capacités observées aujourd'hui (optionnel) :",
+    "- Analyse",
+    "- Documentation",
+    "- Débogage",
+    "- Organisation",
+    "- Communication",
+    "- Créativité",
+    "- Recherche",
+    "- Résolution de problème",
+    "Quelles capacités crois-tu avoir utilisées ou développées aujourd'hui ?",
+}
+
 
 def normalize(value: str) -> str:
     without_accents = unicodedata.normalize("NFKD", value)
@@ -70,6 +83,9 @@ def clean_line(value: str) -> str:
 
 def add_unique(target: list[str], value: str) -> None:
     cleaned = clean_line(value)
+
+    if value.strip() in TEMPLATE_GUIDE_LINES or cleaned in TEMPLATE_GUIDE_LINES:
+        return
 
     if cleaned and normalize(cleaned) not in {normalize(item) for item in target}:
         target.append(cleaned)

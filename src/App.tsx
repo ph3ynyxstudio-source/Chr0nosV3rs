@@ -57,6 +57,42 @@ function buildProjectFromStorage(projectId: string): Project {
   });
 }
 
+function getWeeklySummaryErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (!message || message === "[object Object]") {
+    return "La synthèse n’a pas pu être générée pour une raison inconnue.";
+  }
+
+  if (message.includes("Aucune session trouvée pour la semaine précédente")) {
+    return "Aucune session trouvée pour la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
+  }
+
+  if (
+    message.includes("generation weekly Python echouee") ||
+    message.includes("Python") ||
+    message.includes("a echoue")
+  ) {
+    return "La synthèse n’a pas pu être générée. Le moteur Python a rencontré une erreur.";
+  }
+
+  if (
+    message.includes("lecture synthese weekly echouee") ||
+    message.includes("JSON weekly invalide") ||
+    message.includes("fichier ne peut pas etre lu")
+  ) {
+    return "La synthèse existe, mais son fichier ne peut pas être lu.";
+  }
+
+  if (message.includes("projet") && message.includes("selection")) {
+    return "Sélectionnez un projet avant de générer une synthèse.";
+  }
+
+  return message.length < 180
+    ? `La synthèse n’a pas pu être générée : ${message}`
+    : "La synthèse n’a pas pu être générée pour une raison inconnue.";
+}
+
 function App() {
   const [dashboardScale, setDashboardScale] = useState(getDashboardScale);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
@@ -152,6 +188,11 @@ function App() {
   };
 
   const handleGenerateWeeklySummary = async (projectId: string) => {
+    if (!projectId.trim()) {
+      window.alert("Sélectionnez un projet avant de générer une synthèse.");
+      return;
+    }
+
     setGeneratingWeeklyProjectId(projectId);
 
     try {
@@ -166,7 +207,7 @@ function App() {
         ),
       );
     } catch (error) {
-      window.alert(`Génération de la synthèse impossible : ${String(error)}`);
+      window.alert(getWeeklySummaryErrorMessage(error));
     } finally {
       setGeneratingWeeklyProjectId(null);
     }
@@ -183,7 +224,13 @@ function App() {
       const loadedProjects = await Promise.all(
         projectIds.map(async (projectId) => {
           const rawSessions = await readProjectRawSessions(projectId);
-          const weeklySummaryJson = await readWeeklySummary(projectId);
+          const weeklySummaryJson = await readWeeklySummary(projectId).catch(
+            (error) => {
+              window.alert(getWeeklySummaryErrorMessage(error));
+
+              return null;
+            },
+          );
           const project = applyRawSessionsToProject(
             buildProjectFromStorage(projectId),
             rawSessions,

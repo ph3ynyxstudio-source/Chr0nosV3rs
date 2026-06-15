@@ -26,6 +26,23 @@ const formatSummaryDate = (value: string) => {
   }).format(new Date(year, month - 1, day));
 };
 
+const getPartialSummaryLabel = (weeklySummary?: WeeklySummary) => {
+  if (!weeklySummary) {
+    return null;
+  }
+
+  const sessionCount = weeklySummary.meta.session_count;
+  const expectedSessionCount = weeklySummary.meta.expected_session_count ?? 7;
+  const isPartial =
+    weeklySummary.meta.is_partial ?? sessionCount < expectedSessionCount;
+
+  if (!isPartial) {
+    return null;
+  }
+
+  return `Synthèse partielle — ${sessionCount} / ${expectedSessionCount} sessions utilisées`;
+};
+
 export function LastSynthesisCard({
   synthesisTitle,
   weeklySynthesisStatus,
@@ -45,31 +62,44 @@ export function LastSynthesisCard({
   const generatedDate = weeklySummary
     ? formatSummaryDate(weeklySummary.meta.created_at)
     : null;
+  const partialSummaryLabel = getPartialSummaryLabel(weeklySummary);
 
   return (
-    <article className={`last-synthesis-card ${hasSummary ? "has-summary" : ""}`}>
+    <article
+      className={`last-synthesis-card ${
+        hasSummary ? "has-summary" : "is-pending"
+      }`}>
       <div className="last-synthesis-card-header">
         <h2>Dernière synthèse</h2>
         <span>»</span>
       </div>
       <strong>{cardTitle}</strong>
-      {generatedDate ? <small>{generatedDate}</small> : null}
-      {hasSummary ? (
-        <span className="last-synthesis-card-status">
-          {weeklySynthesisStatus}
-        </span>
-      ) : !canGenerateWeeklySummary ? (
-        <p className="last-synthesis-card-message">
-          Synthèse disponible lorsque la semaine précédente est complète
-        </p>
-      ) : null}
-      <button
-        className="last-synthesis-card-action"
-        type="button"
-        onClick={hasSummary ? onOpenWeeklySummary : onGenerateWeeklySummary}
-        disabled={!hasSummary && (!canGenerateWeeklySummary || isGenerating)}>
-        {actionLabel}
-      </button>
+      <div className="last-synthesis-card-footer">
+        <div className="last-synthesis-card-state">
+          {generatedDate ? <small>{generatedDate}</small> : null}
+          {hasSummary ? (
+            <span className="last-synthesis-card-status">
+              {weeklySynthesisStatus}
+            </span>
+          ) : !canGenerateWeeklySummary ? (
+            <p className="last-synthesis-card-message">
+              Ajoutez au moins une session la semaine précédente pour générer.
+            </p>
+          ) : null}
+          {partialSummaryLabel ? (
+            <p className="last-synthesis-card-partial">
+              {partialSummaryLabel}
+            </p>
+          ) : null}
+        </div>
+        <button
+          className="last-synthesis-card-action"
+          type="button"
+          onClick={hasSummary ? onOpenWeeklySummary : onGenerateWeeklySummary}
+          disabled={!hasSummary && isGenerating}>
+          {actionLabel}
+        </button>
+      </div>
     </article>
   );
 }

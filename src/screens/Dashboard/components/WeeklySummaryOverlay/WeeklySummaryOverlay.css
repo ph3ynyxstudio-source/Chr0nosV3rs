@@ -10,3 +10,9 @@
 .weekly-summary-focus-card .session-focus-card-scroll {
   max-height: 500px;
 }
+
+.weekly-summary-partial {
+  margin-top: 4px;
+  color: rgba(244, 247, 251, 0.58);
+  font-size: 12px;
+}

@@ -1,0 +1,12 @@
+.weekly-summary-overlay-panel {
+  top: 118px;
+  max-width: 720px;
+}
+
+.weekly-summary-focus-card {
+  min-height: 610px;
+}
+
+.weekly-summary-focus-card .session-focus-card-scroll {
+  max-height: 500px;
+}

@@ -1,27 +1,54 @@
+import { type MouseEvent } from "react";
+import editNeonIcon from "../../assets/icons/neon/edit-neon.svg?raw";
 import "./ProjectCard.css";
 
 type ProjectCardProps = {
   name: string;
   lastActivity: string;
   progress: number;
+  progressLabel: string;
   isActive?: boolean;
   onClick?: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;
   canDelete?: boolean;
 };
+
+function NeonIcon({
+  className,
+  svg,
+}: {
+  className: string;
+  svg: string;
+}) {
+  return (
+    <span
+      className={className}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 export function ProjectCard({
   name,
   lastActivity,
   progress,
+  progressLabel,
   isActive = false,
   onClick,
   onDelete,
+  onEdit,
   canDelete = true,
 }: ProjectCardProps) {
   const className = ["project-card", isActive ? "active" : ""]
     .filter(Boolean)
     .join(" ");
+
+  const handleEditOpen = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onEdit?.();
+  };
 
   return (
     <article
@@ -38,27 +65,40 @@ export function ProjectCard({
       aria-pressed={isActive}>
       <div className="project-card-header">
         <h3>{name}</h3>
-        {canDelete ? (
+        <div className="project-card-actions">
           <button
             type="button"
-            className="project-delete-button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete?.();
-            }}
+            className="project-edit-button"
+            onClick={handleEditOpen}
             onKeyDown={(event) => {
               event.stopPropagation();
             }}
-            aria-label={`Supprimer ${name}`}>
-            Supprimer
+            aria-label={`Modifier ${name}`}>
+            <NeonIcon className="project-edit-icon" svg={editNeonIcon} />
           </button>
-        ) : null}
+          {canDelete ? (
+            <button
+              type="button"
+              className="project-delete-button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete?.();
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation();
+              }}
+              aria-label={`Supprimer ${name}`}>
+              Supprimer
+            </button>
+          ) : null}
+        </div>
       </div>
       <small>Dernière activité</small>
       <p>{lastActivity}</p>
 
       <div className="project-progress-meta">
         <span>Progression</span>
+        <strong>{progressLabel}</strong>
       </div>
 
       <div
@@ -67,27 +107,6 @@ export function ProjectCard({
         <div className="progress-line" aria-hidden="true">
           <span style={{ width: `${progress}%` }} />
         </div>
-
-        <svg className="progress-ring" viewBox="0 0 36 36" aria-hidden="true">
-          <circle
-            cx="18"
-            cy="18"
-            r="15"
-            stroke="var(--bg-card-glow)"
-            strokeWidth="4"
-            fill="none"
-          />
-          <circle
-            cx="18"
-            cy="18"
-            r="15"
-            stroke={isActive ? "var(--accent-purple)" : "var(--accent-blue)"}
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray="94.2"
-            strokeDashoffset={94.2 - (progress / 100) * 94.2}
-          />
-        </svg>
 
         <span className="pct-text">{progress}%</span>
       </div>

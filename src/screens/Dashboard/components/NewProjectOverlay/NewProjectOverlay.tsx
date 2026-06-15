@@ -2,16 +2,26 @@ import "./NewProjectOverlay.css";
 
 type NewProjectOverlayProps = {
   isOpen: boolean;
+  mode?: "create" | "edit";
   projectName: string;
+  projectTargetWeeks: string;
+  projectDescription: string;
   onProjectNameChange: (value: string) => void;
+  onProjectTargetWeeksChange: (value: string) => void;
+  onProjectDescriptionChange: (value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
 };
 
 export function NewProjectOverlay({
   isOpen,
+  mode = "create",
   projectName,
+  projectTargetWeeks,
+  projectDescription,
   onProjectNameChange,
+  onProjectTargetWeeksChange,
+  onProjectDescriptionChange,
   onCancel,
   onConfirm,
 }: NewProjectOverlayProps) {
@@ -20,6 +30,7 @@ export function NewProjectOverlay({
   }
 
   const isConfirmDisabled = projectName.trim().length === 0;
+  const isEditMode = mode === "edit";
 
   return (
     <div className="new-project-overlay">
@@ -30,10 +41,18 @@ export function NewProjectOverlay({
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-project-overlay-title">
-        <p className="new-project-overlay-kicker">Nouveau projet</p>
-        <h2 id="new-project-overlay-title">Definir le nom du projet</h2>
+        <p className="new-project-overlay-kicker">
+          {isEditMode ? "Modifier le projet" : "Nouveau projet"}
+        </p>
+        <h2 id="new-project-overlay-title">
+          {isEditMode
+            ? "Modifier les informations du projet"
+            : "Définir le nom du projet"}
+        </h2>
         <p className="new-project-overlay-copy">
-          Choisissez un nom simple pour creer le projet dans le MVP local.
+          {isEditMode
+            ? "Ajustez le nom affiché, l’objectif et la description courte."
+            : "Choisissez un nom simple pour créer le projet dans le MVP local."}
         </p>
 
         <label className="new-project-overlay-field">
@@ -47,6 +66,31 @@ export function NewProjectOverlay({
           />
         </label>
 
+        <label className="new-project-overlay-field">
+          <span>Objectif du projet en semaines</span>
+          <input
+            type="number"
+            min="1"
+            value={projectTargetWeeks}
+            onChange={(event) =>
+              onProjectTargetWeeksChange(event.target.value)
+            }
+            placeholder="12"
+          />
+        </label>
+
+        <label className="new-project-overlay-field">
+          <span>Description courte du projet</span>
+          <textarea
+            value={projectDescription}
+            onChange={(event) =>
+              onProjectDescriptionChange(event.target.value)
+            }
+            placeholder="Projet local suivi par sessions hebdomadaires."
+            rows={3}
+          />
+        </label>
+
         <div className="new-project-overlay-actions">
           <button type="button" onClick={onCancel}>
             Annuler
@@ -56,7 +100,7 @@ export function NewProjectOverlay({
             className="is-primary"
             onClick={onConfirm}
             disabled={isConfirmDisabled}>
-            Creer le projet
+            {isEditMode ? "Enregistrer" : "Créer le projet"}
           </button>
         </div>
       </div>

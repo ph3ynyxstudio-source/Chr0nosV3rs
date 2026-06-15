@@ -3,17 +3,21 @@ import { Dashboard } from "./screens/Dashboard/Dashboard";
 import {
   buildNewProjectName,
   applyRawSessionsToProject,
+  buildProjectProgress,
   createProject,
   formatProjectLastActivity,
   initialProjects,
   type Project,
+  type WeeklySummary,
 } from "./screens/Dashboard/projects";
 import { WeeklyView } from "./screens/WeeklyView/WeeklyView";
 import {
   createProjectStorage,
   deleteProjectStorage,
   ensureProjectRawSession,
+  generateWeeklySummary,
   listProjectStorages,
+  readWeeklySummary,
   readProjectRawSessions,
   saveProjectRawSession,
 } from "./storage/projectStorage";
@@ -22,6 +26,7 @@ import "./App.css";
 const DASHBOARD_WIDTH = 1620;
 const DASHBOARD_HEIGHT = 900;
 const MVP_MAX_PROJECTS = 5;
+type ProjectOverlayMode = "create" | "edit";
 
 function getDashboardScale() {
   if (typeof window === "undefined") {
@@ -60,10 +65,20 @@ function App() {
   );
   const [isCreateProjectOverlayOpen, setIsCreateProjectOverlayOpen] =
     useState(false);
+  const [projectOverlayMode, setProjectOverlayMode] =
+    useState<ProjectOverlayMode>("create");
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectTargetWeeks, setNewProjectTargetWeeks] = useState("12");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
   const [activeProjectId, setActiveProjectId] = useState<string | null>(
     initialProjects[0]?.id ?? null,
   );
+  const [generatingWeeklyProjectId, setGeneratingWeeklyProjectId] = useState<
+    string | null
+  >(null);
+  const [isWeeklySummaryOverlayOpen, setIsWeeklySummaryOverlayOpen] =
+    useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -80,6 +95,22 @@ function App() {
 
   const activeProject =
     projects.find((project) => project.id === activeProjectId) ?? projects[0];
+
+  const applyWeeklySummaryToProject = (
+    project: Project,
+    weeklySummary: WeeklySummary,
+  ): Project => {
+    const synthesisDate = weeklySummary.meta.created_at.split("T")[0];
+
+    return {
+      ...project,
+      weeklySummary,
+      synthesisTitle: "Synthèse hebdomadaire",
+      synthesisDate,
+      weeklySynthesisStatus: "Proposition",
+      synthesisActionLabel: "Ouvrir",
+    };
+  };
 
   const refreshProjectRawSessions = async (projectId: string) => {
     const rawSessions = await readProjectRawSessions(projectId);
@@ -120,6 +151,27 @@ function App() {
     await refreshProjectRawSessions(projectId);
   };
 
+  const handleGenerateWeeklySummary = async (projectId: string) => {
+    setGeneratingWeeklyProjectId(projectId);
+
+    try {
+      const summaryJson = await generateWeeklySummary(projectId);
+      const weeklySummary = JSON.parse(summaryJson) as WeeklySummary;
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? applyWeeklySummaryToProject(project, weeklySummary)
+            : project,
+        ),
+      );
+    } catch (error) {
+      window.alert(`Génération de la synthèse impossible : ${String(error)}`);
+    } finally {
+      setGeneratingWeeklyProjectId(null);
+    }
+  };
+
   useEffect(() => {
     const loadStoredProjects = async () => {
       const projectIds = await listProjectStorages();
@@ -128,7 +180,26 @@ function App() {
         return;
       }
 
-      const loadedProjects = projectIds.map(buildProjectFromStorage);
+      const loadedProjects = await Promise.all(
+        projectIds.map(async (projectId) => {
+          const rawSessions = await readProjectRawSessions(projectId);
+          const weeklySummaryJson = await readWeeklySummary(projectId);
+          const project = applyRawSessionsToProject(
+            buildProjectFromStorage(projectId),
+            rawSessions,
+          );
+
+          if (!weeklySummaryJson) {
+            return project;
+          }
+
+          return applyWeeklySummaryToProject(
+            project,
+            JSON.parse(weeklySummaryJson) as WeeklySummary,
+          );
+        }),
+      );
+
       setProjects(loadedProjects);
       setActiveProjectId(loadedProjects[0]?.id ?? null);
     };
@@ -138,6 +209,49 @@ function App() {
 
   const handleProjectSelect = (project: Project) => {
     setActiveProjectId(project.id);
+    setIsWeeklySummaryOverlayOpen(false);
+  };
+
+  const handleUpdateProjectDetails = ({
+    projectId,
+    name,
+    description,
+    targetWeeks,
+  }: {
+    projectId: string;
+    name: string;
+    description: string;
+    targetWeeks: number;
+  }) => {
+    const trimmedName = name.trim();
+    const safeTargetWeeks = Math.max(1, targetWeeks);
+
+    if (!trimmedName) {
+      window.alert("Le nom du projet ne peut pas etre vide.");
+      return;
+    }
+
+    setProjects((currentProjects) =>
+      currentProjects.map((project) => {
+        if (project.id !== projectId) {
+          return project;
+        }
+
+        return {
+          ...project,
+          name: trimmedName,
+          description:
+            description.trim() ||
+            "Projet local suivi par sessions hebdomadaires.",
+          targetWeeks: safeTargetWeeks,
+          progress: buildProjectProgress(
+            project.currentProjectWeek,
+            safeTargetWeeks,
+          ),
+          projectProgressLabel: `S${project.currentProjectWeek} / S${safeTargetWeeks}`,
+        };
+      }),
+    );
   };
 
   const handleOpenCreateProjectOverlay = () => {
@@ -146,19 +260,60 @@ function App() {
       return;
     }
 
+    setProjectOverlayMode("create");
+    setEditingProjectId(null);
     setNewProjectName(buildNewProjectName(projects));
+    setNewProjectTargetWeeks("12");
+    setNewProjectDescription("");
     setIsCreateProjectOverlayOpen(true);
+  };
+
+  const handleOpenEditProjectOverlay = (project: Project) => {
+    setProjectOverlayMode("edit");
+    setEditingProjectId(project.id);
+    setNewProjectName(project.name);
+    setNewProjectTargetWeeks(String(project.targetWeeks));
+    setNewProjectDescription(project.description);
+    setIsCreateProjectOverlayOpen(true);
+    setActiveProjectId(project.id);
   };
 
   const handleCancelCreateProject = () => {
     setIsCreateProjectOverlayOpen(false);
+    setProjectOverlayMode("create");
+    setEditingProjectId(null);
     setNewProjectName("");
+    setNewProjectTargetWeeks("12");
+    setNewProjectDescription("");
   };
 
-  const handleConfirmCreateProject = async () => {
+  const handleConfirmProjectOverlay = async () => {
     const trimmedProjectName = newProjectName.trim();
 
     if (!trimmedProjectName) {
+      return;
+    }
+
+    if (projectOverlayMode === "edit") {
+      if (!editingProjectId) {
+        return;
+      }
+
+      const targetWeeks = Number.parseInt(newProjectTargetWeeks, 10);
+
+      handleUpdateProjectDetails({
+        projectId: editingProjectId,
+        name: trimmedProjectName,
+        description: newProjectDescription,
+        targetWeeks: Number.isFinite(targetWeeks) ? targetWeeks : 12,
+      });
+
+      setIsCreateProjectOverlayOpen(false);
+      setProjectOverlayMode("create");
+      setEditingProjectId(null);
+      setNewProjectName("");
+      setNewProjectTargetWeeks("12");
+      setNewProjectDescription("");
       return;
     }
 
@@ -174,11 +329,14 @@ function App() {
     }
 
     const createdAt = new Date();
+    const targetWeeks = Number.parseInt(newProjectTargetWeeks, 10);
     const nextProject = createProject({
       id: trimmedProjectName,
       name: trimmedProjectName,
       lastActivity: formatProjectLastActivity(createdAt),
       progress: 0,
+      targetWeeks: Number.isFinite(targetWeeks) ? targetWeeks : 12,
+      description: newProjectDescription,
     });
 
     try {
@@ -198,7 +356,11 @@ function App() {
     setProjects((currentProjects) => [...currentProjects, nextProject]);
     setActiveProjectId(nextProject.id);
     setIsCreateProjectOverlayOpen(false);
+    setProjectOverlayMode("create");
+    setEditingProjectId(null);
     setNewProjectName("");
+    setNewProjectTargetWeeks("12");
+    setNewProjectDescription("");
   };
 
   const handleDeleteProject = async (project: Project) => {
@@ -267,11 +429,22 @@ function App() {
               onProjectSelect={handleProjectSelect}
               onOpenCreateProjectOverlay={handleOpenCreateProjectOverlay}
               isCreateProjectOverlayOpen={isCreateProjectOverlayOpen}
+              projectOverlayMode={projectOverlayMode}
               newProjectName={newProjectName}
+              newProjectTargetWeeks={newProjectTargetWeeks}
+              newProjectDescription={newProjectDescription}
               onNewProjectNameChange={setNewProjectName}
+              onNewProjectTargetWeeksChange={setNewProjectTargetWeeks}
+              onNewProjectDescriptionChange={setNewProjectDescription}
               onCancelCreateProject={handleCancelCreateProject}
-              onConfirmCreateProject={handleConfirmCreateProject}
+              onConfirmCreateProject={handleConfirmProjectOverlay}
               onDeleteProject={handleDeleteProject}
+              onOpenEditProjectOverlay={handleOpenEditProjectOverlay}
+              onGenerateWeeklySummary={handleGenerateWeeklySummary}
+              generatingWeeklyProjectId={generatingWeeklyProjectId}
+              isWeeklySummaryOverlayOpen={isWeeklySummaryOverlayOpen}
+              onOpenWeeklySummary={() => setIsWeeklySummaryOverlayOpen(true)}
+              onCloseWeeklySummary={() => setIsWeeklySummaryOverlayOpen(false)}
               onOpenWeeklyView={(projectId) => {
                 void refreshProjectRawSessions(projectId);
                 setActiveProjectId(projectId);

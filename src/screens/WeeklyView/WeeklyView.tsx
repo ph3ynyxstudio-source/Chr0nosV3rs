@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { type Project } from "../Dashboard/projects";
+import {
+  buildWeeklyDataFromRawSessions,
+  getWeekStart,
+  type Project,
+} from "../Dashboard/projects";
+import closeNeonIcon from "../../assets/icons/neon/close-neon.svg?raw";
+import { WeeklySummaryOverlay } from "../Dashboard/components/WeeklySummaryOverlay/WeeklySummaryOverlay";
 import { LastSynthesisCard } from "./components/LastSynthesisCard/LastSynthesisCard";
 import { SessionOverlay } from "./components/SessionOverlay/SessionOverlay";
 import { TodaySessionCard } from "./components/TodaySessionCard/TodaySessionCard";
@@ -17,6 +23,22 @@ type WeeklyViewProps = {
   onBack: () => void;
 };
 
+function NeonIcon({
+  className,
+  svg,
+}: {
+  className: string;
+  svg: string;
+}) {
+  return (
+    <span
+      className={className}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
+
 export function WeeklyView({
   project,
   onOpenTodaySession,
@@ -24,13 +46,27 @@ export function WeeklyView({
   onBack,
 }: WeeklyViewProps) {
   const [openSessionDayIds, setOpenSessionDayIds] = useState<string[]>([]);
+  const [isWeeklySummaryOverlayOpen, setIsWeeklySummaryOverlayOpen] =
+    useState(false);
+  const [viewWeekStart, setViewWeekStart] = useState(() =>
+    getWeekStart(new Date()),
+  );
+  const localReferenceDate = new Date();
+  const viewedWeek = buildWeeklyDataFromRawSessions(
+    project.rawSessions,
+    viewWeekStart,
+    localReferenceDate,
+  );
+  const currentWeekStart = getWeekStart(localReferenceDate);
+  const isViewingCurrentWeek =
+    viewWeekStart.getTime() === currentWeekStart.getTime();
   const currentDay =
     project.weeklyDays.find((day) => day.status === "En cours") ??
     project.weeklyDays.find((day) => day.status === "À créer") ??
     project.weeklyDays[0];
   const currentDayId = currentDay?.id;
   const openDays = openSessionDayIds
-    .map((dayId) => project.weeklyDays.find((day) => day.id === dayId))
+    .map((dayId) => viewedWeek.weeklyDays.find((day) => day.id === dayId))
     .filter((day): day is Project["weeklyDays"][number] => Boolean(day))
     .sort((leftDay, rightDay) => {
       if (openSessionDayIds.length < 2) {
@@ -50,7 +86,23 @@ export function WeeklyView({
 
   useEffect(() => {
     setOpenSessionDayIds([]);
+    setIsWeeklySummaryOverlayOpen(false);
+    setViewWeekStart(getWeekStart(new Date()));
   }, [project.id]);
+
+  const handleWeekNavigation = (direction: -1 | 1) => {
+    setOpenSessionDayIds([]);
+    setViewWeekStart((currentStart) => {
+      const nextStart = new Date(currentStart);
+      nextStart.setDate(currentStart.getDate() + direction * 7);
+
+      if (nextStart > currentWeekStart) {
+        return currentStart;
+      }
+
+      return getWeekStart(nextStart);
+    });
+  };
 
   const handleDayOpen = (dayId: string) => {
     setOpenSessionDayIds((currentDayIds) => {
@@ -89,6 +141,7 @@ export function WeeklyView({
       return;
     }
 
+    setViewWeekStart(currentWeekStart);
     setOpenSessionDayIds([`raw-${todayDayId}`]);
   };
 
@@ -108,13 +161,38 @@ export function WeeklyView({
         </div>
 
         <div className="weekly-view-actions">
-          <span className="weekly-view-week-chip">Semaine actuelle</span>
-          <span className="weekly-view-range-chip">{project.weekRangeLabel}</span>
+          <span className="weekly-view-week-chip">
+            {isViewingCurrentWeek ? "Semaine actuelle" : "Semaine consultée"}
+          </span>
+          <div className="weekly-view-range-nav">
+            <button
+              type="button"
+              className="weekly-view-range-arrow"
+              aria-label="Semaine précédente"
+              onClick={() => handleWeekNavigation(-1)}>
+              ‹
+            </button>
+            <span className="weekly-view-range-chip">
+              {viewedWeek.weekRangeLabel}
+            </span>
+            <button
+              type="button"
+              className="weekly-view-range-arrow"
+              aria-label="Semaine suivante"
+              onClick={() => handleWeekNavigation(1)}
+              disabled={isViewingCurrentWeek}>
+              ›
+            </button>
+          </div>
           <button
             type="button"
             className="weekly-view-close-button"
-            onClick={onBack}>
-            Retour dashboard
+            onClick={onBack}
+            aria-label="Retour dashboard">
+            <NeonIcon
+              className="weekly-icon weekly-close-icon"
+              svg={closeNeonIcon}
+            />
           </button>
         </div>
       </header>
@@ -124,22 +202,30 @@ export function WeeklyView({
           projectName={project.name}
           synthesisDate={project.synthesisDate}
           weeklySynthesisStatus={project.weeklySynthesisStatus}
+          onOpenSynthesis={
+            project.weeklySummary
+              ? () => setIsWeeklySummaryOverlayOpen(true)
+              : undefined
+          }
         />
 
         <section className="weekly-board">
           <div className="weekly-board-heading">
-            <p className="weekly-board-kicker">Semaine en cours</p>
-            <h2>{project.activeWeek}</h2>
+            <p className="weekly-board-kicker">
+              {isViewingCurrentWeek ? "Semaine en cours" : "Semaine consultée"}
+            </p>
+            <h2>{viewedWeek.activeWeek}</h2>
             <p>Cliquez sur une journee pour ouvrir son contenu.</p>
           </div>
 
           <div className="weekly-days-grid">
-            {project.weeklyDays.map((day) => (
+            {viewedWeek.weeklyDays.map((day) => (
               <WeeklyDayCard
                 key={day.id}
                 label={day.label}
                 shortDate={day.shortDate}
                 status={day.status}
+                isMissed={day.isMissed}
                 isOpen={openSessionDayIds.includes(day.id)}
                 isDisabled={
                   openSessionDayIds.length > 0 &&
@@ -160,8 +246,7 @@ export function WeeklyView({
           projectName={project.name}
           currentDayLabel={currentDay.label}
           currentDayDate={currentDay.date}
-          weeklyContext={project.weeklyContext}
-          progress={project.progress}
+          projectDescription={project.description}
           onOpenSession={handleTodaySessionOpen}
         />
       </main>
@@ -176,13 +261,20 @@ export function WeeklyView({
       <SessionOverlay
         projectId={project.id}
         openDays={openDays}
-        allDays={project.weeklyDays}
+        allDays={viewedWeek.weeklyDays}
         onCloseAll={() => setOpenSessionDayIds([])}
         onCloseDay={handleDayClose}
         onSaveDay={(dayId, content) =>
           onSaveRawSession(project.id, dayId, content)
         }
         onToggleDay={handleDayToggle}
+      />
+
+      <WeeklySummaryOverlay
+        isOpen={isWeeklySummaryOverlayOpen}
+        weeklySummary={project.weeklySummary}
+        status={project.weeklySynthesisStatus}
+        onClose={() => setIsWeeklySummaryOverlayOpen(false)}
       />
     </section>
   );

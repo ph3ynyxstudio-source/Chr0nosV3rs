@@ -1,8 +1,8 @@
 .status-card {
   position: relative;
   z-index: 1;
-  padding: clamp(16px, 1.1vw, 18px) clamp(18px, 1.1vw, 20px)
-    clamp(14px, 1vw, 16px);
+  padding: clamp(14px, 0.95vw, 16px) clamp(18px, 1.1vw, 20px)
+    clamp(8px, 0.6vw, 10px);
   border: 1px solid rgba(84, 214, 255, 0.09);
   border-radius: 18px;
   background: linear-gradient(
@@ -15,7 +15,7 @@
 }
 
 .status-card h2 {
-  margin: 0 0 clamp(6px, 0.6vw, 10px);
+  margin: 0 0 clamp(4px, 0.45vw, 6px);
   font-size: clamp(17px, 0.72vw, 18px);
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -32,19 +32,36 @@
   display: flex;
   align-items: center;
   gap: clamp(12px, 0.8vw, 12px);
-  margin: clamp(6px, 0.8vw, 6px) 0 clamp(8px, 0.9vw, 12px);
+  margin: clamp(4px, 0.5vw, 5px) 0 0;
 }
 
 .status-card-ring {
+  position: relative;
   display: grid;
   place-items: center;
   width: clamp(46px, 2.8vw, 46px);
   height: clamp(46px, 2.8vw, 46px);
-  border: clamp(3px, 0.18vw, 3px) solid var(--accent-blue);
   border-radius: 50%;
+  background: conic-gradient(
+    var(--accent-blue) 0 var(--week-progress-deg),
+    rgba(255, 255, 255, 0.08) var(--week-progress-deg) 360deg
+  );
   font-size: clamp(12px, 0.78vw, 12px);
   font-weight: bold;
   box-shadow: 0 0 18px rgba(84, 214, 255, 0.18);
+}
+
+.status-card-ring::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgba(8, 14, 28, 0.94);
+}
+
+.status-card-ring span {
+  position: relative;
+  z-index: 1;
 }
 
 .status-card-week-status strong {
@@ -57,18 +74,5 @@
 .status-card-week-status small {
   color: var(--text-secondary);
   font-size: clamp(14px, 0.82vw, 15px);
-  line-height: 3.25;
-}
-
-.status-card-progress-track {
-  margin-top: clamp(10px, 0.9vw, 10px);
-  height: clamp(6px, 0.36vw, 7px);
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.status-card-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+  line-height: 1.5;
 }

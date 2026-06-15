@@ -1,18 +1,22 @@
+import { type CSSProperties } from "react";
 import "./StatusCard.css";
 
 type StatusCardProps = {
-  activeWeek: string;
   completedDays: number;
   weekCompletionLabel: string;
   weekProgress: number;
 };
 
 export function StatusCard({
-  activeWeek,
   completedDays,
   weekCompletionLabel,
   weekProgress,
 }: StatusCardProps) {
+  const progressDegrees = Math.round((weekProgress / 100) * 360);
+  const ringStyle = {
+    "--week-progress-deg": `${progressDegrees}deg`,
+  } as CSSProperties;
+
   return (
     <article className="status-card">
       <div className="status-card-header">
@@ -20,17 +24,15 @@ export function StatusCard({
         <span>›</span>
       </div>
       <div className="status-card-week-status">
-        <div className="status-card-ring">{completedDays}/7</div>
+        <div
+          className="status-card-ring"
+          style={ringStyle}>
+          <span>{completedDays}/7</span>
+        </div>
         <div>
-          <strong>{activeWeek}</strong>
+          <strong>Semaine active</strong>
           <small>{weekCompletionLabel}</small>
         </div>
-      </div>
-      <div className="status-card-progress-track">
-        <div
-          className="status-card-progress-fill"
-          style={{ width: `${weekProgress}%` }}
-        />
       </div>
     </article>
   );

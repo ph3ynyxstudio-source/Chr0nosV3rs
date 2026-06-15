@@ -64,9 +64,9 @@
   letter-spacing: 0.06em;
 }
 
-.new-project-overlay-field input {
+.new-project-overlay-field input,
+.new-project-overlay-field textarea {
   width: 100%;
-  min-height: 52px;
   padding: 0 16px;
   border: 1px solid rgba(84, 214, 255, 0.16);
   border-radius: 14px;
@@ -75,7 +75,18 @@
   font: inherit;
 }
 
-.new-project-overlay-field input:focus {
+.new-project-overlay-field input {
+  min-height: 52px;
+}
+
+.new-project-overlay-field textarea {
+  min-height: 82px;
+  padding-top: 14px;
+  resize: vertical;
+}
+
+.new-project-overlay-field input:focus,
+.new-project-overlay-field textarea:focus {
   outline: none;
   border-color: rgba(84, 214, 255, 0.42);
   box-shadow: 0 0 0 3px rgba(84, 214, 255, 0.08);

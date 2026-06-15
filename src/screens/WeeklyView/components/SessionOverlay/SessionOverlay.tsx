@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { type WeeklyDay } from "../../../Dashboard/projects";
+import calendarNeonIcon from "../../../../assets/icons/neon/calendar-neon.svg?raw";
+import closeNeonIcon from "../../../../assets/icons/neon/close-neon.svg?raw";
 import "./SessionOverlay.css";
 
 type SessionOverlayProps = {
@@ -11,6 +13,38 @@ type SessionOverlayProps = {
   onSaveDay: (dayId: string, content: string) => Promise<void>;
   onToggleDay: (dayId: string) => void;
 };
+
+const getStatusLabel = (status: WeeklyDay["status"], isMissed = false) => {
+  if (isMissed) {
+    return "Non complétée";
+  }
+
+  if (status === "À créer") {
+    return "Créer session";
+  }
+
+  if (status === "À faire") {
+    return "À venir";
+  }
+
+  return status;
+};
+
+function NeonIcon({
+  className,
+  svg,
+}: {
+  className: string;
+  svg: string;
+}) {
+  return (
+    <span
+      className={className}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 export function SessionOverlay({
   projectId,
@@ -121,6 +155,7 @@ export function SessionOverlay({
           const draft = draftsByDayId[day.id] ?? day.rawContent ?? "";
           const isSaving = savingDayId === day.id;
           const canSave = Boolean(day.rawDateId) && !isSaving;
+          const statusLabel = getStatusLabel(day.status, day.isMissed);
 
           return (
             <article
@@ -129,7 +164,10 @@ export function SessionOverlay({
               <header className="session-focus-card-header">
                 <div className="session-focus-card-title-group">
                   <span className="session-focus-card-icon" aria-hidden="true">
-                    []
+                    <NeonIcon
+                      className="session-focus-card-svg-icon"
+                      svg={calendarNeonIcon}
+                    />
                   </span>
                   <div>
                     <h3>{day.label}</h3>
@@ -138,7 +176,9 @@ export function SessionOverlay({
                 </div>
 
                 <div className="session-focus-card-actions">
-                  <span className="session-focus-card-status">{day.status}</span>
+                  <span className="session-focus-card-status">
+                    {statusLabel}
+                  </span>
                   <button
                     type="button"
                     className="session-focus-card-save"
@@ -149,8 +189,12 @@ export function SessionOverlay({
                   <button
                     type="button"
                     className="session-focus-card-close"
-                    onClick={() => onCloseDay(day.id)}>
-                    Fermer
+                    onClick={() => onCloseDay(day.id)}
+                    aria-label="Fermer la session">
+                    <NeonIcon
+                      className="session-focus-card-close-icon"
+                      svg={closeNeonIcon}
+                    />
                   </button>
                 </div>
               </header>

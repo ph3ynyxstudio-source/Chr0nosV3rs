@@ -1,12 +1,17 @@
+mod runner;
+
+use chrono::{Datelike, Duration, Local, NaiveDate};
 use serde::Serialize;
 use std::{fs, path::PathBuf};
+use tauri::Manager;
 
 const PROJECT_DATA_SUBDIRS: [&str; 5] = ["raw", "weekly", "monthly", "quarterly", "archives"];
 
-const EMPTY_SESSION_TEMPLATE_SECTIONS: [&str; 6] = [
+const EMPTY_SESSION_TEMPLATE_SECTIONS: [&str; 7] = [
     "📌 Contexte",
     "✅ Réalisé",
     "💡 Découvertes",
+    "📚 Apprentissages",
     "🚧 Blocages",
     "➡️ Suite",
     "🧭 Résumé en une phrase",
@@ -20,7 +25,7 @@ struct RawSession {
     content: String,
 }
 
-fn data_dir() -> Result<PathBuf, String> {
+fn data_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let current_dir =
         std::env::current_dir().map_err(|error| format!("current_dir failed: {error}"))?;
     let direct_data_dir = current_dir.join("data");
@@ -31,11 +36,17 @@ fn data_dir() -> Result<PathBuf, String> {
 
     if current_dir.file_name().and_then(|name| name.to_str()) == Some("src-tauri") {
         if let Some(repo_dir) = current_dir.parent() {
-            return Ok(repo_dir.join("data"));
+            let repo_data_dir = repo_dir.join("data");
+
+            if repo_data_dir.exists() {
+                return Ok(repo_data_dir);
+            }
         }
     }
 
-    Ok(direct_data_dir)
+    app.path()
+        .app_data_dir()
+        .map_err(|error| format!("resolution AppData echouee: {error}"))
 }
 
 fn validate_project_id(project_id: &str) -> Result<(), String> {
@@ -63,9 +74,45 @@ fn validate_project_id(project_id: &str) -> Result<(), String> {
     }
 }
 
-fn project_dir(project_id: &str) -> Result<PathBuf, String> {
+fn project_dir(app: &tauri::AppHandle, project_id: &str) -> Result<PathBuf, String> {
     validate_project_id(project_id)?;
-    Ok(data_dir()?.join("projects").join(project_id))
+    Ok(data_dir(app)?.join("projects").join(project_id))
+}
+
+fn weekly_script_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let current_dir =
+        std::env::current_dir().map_err(|error| format!("current_dir failed: {error}"))?;
+    let direct_script_path = current_dir.join("scripts").join("weekly.py");
+
+    if direct_script_path.exists() {
+        return Ok(direct_script_path);
+    }
+
+    if current_dir.file_name().and_then(|name| name.to_str()) == Some("src-tauri") {
+        if let Some(repo_dir) = current_dir.parent() {
+            let repo_script_path = repo_dir.join("scripts").join("weekly.py");
+
+            if repo_script_path.exists() {
+                return Ok(repo_script_path);
+            }
+        }
+    }
+
+    let bundled_script_path = app
+        .path()
+        .resource_dir()
+        .map_err(|error| format!("resolution dossier resources echouee: {error}"))?
+        .join("scripts")
+        .join("weekly.py");
+
+    if bundled_script_path.exists() {
+        Ok(bundled_script_path)
+    } else {
+        Err(format!(
+            "script weekly.py introuvable: {}",
+            bundled_script_path.display()
+        ))
+    }
 }
 
 fn validate_day_id(day_id: &str) -> Result<(), String> {
@@ -99,6 +146,75 @@ fn is_markdown_session_file(file_name: &str) -> bool {
         })
 }
 
+fn previous_week_dates_for(today: NaiveDate) -> Vec<NaiveDate> {
+    let current_week_start =
+        today - Duration::days(today.weekday().num_days_from_sunday() as i64);
+    let previous_week_start = current_week_start - Duration::days(7);
+
+    (0..7)
+        .map(|offset| previous_week_start + Duration::days(offset))
+        .collect()
+}
+
+fn previous_week_dates() -> Vec<NaiveDate> {
+    previous_week_dates_for(Local::now().date_naive())
+}
+
+fn prepare_previous_week_input(project_id: &str, raw_dir: &PathBuf) -> Result<PathBuf, String> {
+    let target_dates = previous_week_dates();
+    let mut source_files = Vec::new();
+
+    for date in target_dates {
+        let file_name = format!("{}.md", date.format("%Y-%m-%d"));
+        let source_file = raw_dir.join(&file_name);
+
+        if !source_file.exists() {
+            return Err(
+                "synthese disponible lorsque la semaine precedente est complete".to_string(),
+            );
+        }
+
+        source_files.push((file_name, source_file));
+    }
+
+    let temp_dir = std::env::temp_dir().join(format!(
+        "chronosvers-weekly-{}-{}",
+        project_id,
+        Local::now().timestamp_millis()
+    ));
+
+    fs::create_dir_all(&temp_dir)
+        .map_err(|error| format!("creation dossier temporaire weekly echouee: {error}"))?;
+
+    for (file_name, source_file) in source_files {
+        fs::copy(&source_file, temp_dir.join(&file_name))
+            .map_err(|error| format!("copie session {file_name} echouee: {error}"))?;
+    }
+
+    Ok(temp_dir)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn previous_week_is_sunday_to_saturday_when_today_is_sunday() {
+        let today = NaiveDate::from_ymd_opt(2026, 6, 14).unwrap();
+        let dates = previous_week_dates_for(today);
+
+        assert_eq!(
+            dates.first().unwrap().format("%Y-%m-%d").to_string(),
+            "2026-06-07"
+        );
+        assert_eq!(
+            dates.last().unwrap().format("%Y-%m-%d").to_string(),
+            "2026-06-13"
+        );
+        assert_eq!(dates.len(), 7);
+    }
+}
+
 fn empty_session_template(day_id: &str) -> String {
     let mut content = format!("# {day_id}\n\n");
 
@@ -110,8 +226,8 @@ fn empty_session_template(day_id: &str) -> String {
 }
 
 #[tauri::command]
-fn create_project_storage(project_id: String) -> Result<(), String> {
-    let project_dir = project_dir(&project_id)?;
+fn create_project_storage(app: tauri::AppHandle, project_id: String) -> Result<(), String> {
+    let project_dir = project_dir(&app, &project_id)?;
 
     fs::create_dir_all(&project_dir)
         .map_err(|error| format!("creation dossier projet echouee: {error}"))?;
@@ -125,8 +241,8 @@ fn create_project_storage(project_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn list_project_storages() -> Result<Vec<String>, String> {
-    let projects_dir = data_dir()?.join("projects");
+fn list_project_storages(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let projects_dir = data_dir(&app)?.join("projects");
 
     if !projects_dir.exists() {
         return Ok(Vec::new());
@@ -155,8 +271,8 @@ fn list_project_storages() -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-fn delete_project_storage(project_id: String) -> Result<(), String> {
-    let project_dir = project_dir(&project_id)?;
+fn delete_project_storage(app: tauri::AppHandle, project_id: String) -> Result<(), String> {
+    let project_dir = project_dir(&app, &project_id)?;
 
     if project_dir.exists() {
         fs::remove_dir_all(&project_dir)
@@ -167,8 +283,11 @@ fn delete_project_storage(project_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn read_project_raw_sessions(project_id: String) -> Result<Vec<RawSession>, String> {
-    let raw_dir = project_dir(&project_id)?.join("raw");
+fn read_project_raw_sessions(
+    app: tauri::AppHandle,
+    project_id: String,
+) -> Result<Vec<RawSession>, String> {
+    let raw_dir = project_dir(&app, &project_id)?.join("raw");
 
     if !raw_dir.exists() {
         return Ok(Vec::new());
@@ -211,10 +330,14 @@ fn read_project_raw_sessions(project_id: String) -> Result<Vec<RawSession>, Stri
 }
 
 #[tauri::command]
-fn ensure_project_raw_session(project_id: String, day_id: String) -> Result<RawSession, String> {
+fn ensure_project_raw_session(
+    app: tauri::AppHandle,
+    project_id: String,
+    day_id: String,
+) -> Result<RawSession, String> {
     validate_day_id(&day_id)?;
 
-    let raw_dir = project_dir(&project_id)?.join("raw");
+    let raw_dir = project_dir(&app, &project_id)?.join("raw");
     fs::create_dir_all(&raw_dir)
         .map_err(|error| format!("creation dossier raw echouee: {error}"))?;
 
@@ -238,6 +361,7 @@ fn ensure_project_raw_session(project_id: String, day_id: String) -> Result<RawS
 
 #[tauri::command]
 fn save_project_raw_session(
+    app: tauri::AppHandle,
     project_id: String,
     day_id: String,
     content: String,
@@ -245,7 +369,7 @@ fn save_project_raw_session(
     validate_day_id(&day_id)?;
 
     let file_name = format!("{day_id}.md");
-    let file_path = project_dir(&project_id)?.join("raw").join(&file_name);
+    let file_path = project_dir(&app, &project_id)?.join("raw").join(&file_name);
 
     if !file_path.exists() {
         return Err(format!("session {file_name} introuvable"));
@@ -261,6 +385,47 @@ fn save_project_raw_session(
     })
 }
 
+#[tauri::command]
+fn generate_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<String, String> {
+    let project_dir = project_dir(&app, &project_id)?;
+    let raw_dir = project_dir.join("raw");
+    let weekly_dir = project_dir.join("weekly");
+    let output_file = weekly_dir.join("weekly_summary.json");
+
+    if !raw_dir.exists() {
+        return Err("dossier raw introuvable pour ce projet".to_string());
+    }
+
+    fs::create_dir_all(&weekly_dir)
+        .map_err(|error| format!("creation dossier weekly echouee: {error}"))?;
+
+    let input_folder = prepare_previous_week_input(&project_id, &raw_dir)?;
+    let result = runner::run_weekly_summary(&weekly_script_path(&app)?, &input_folder, &output_file);
+
+    let _ = fs::remove_dir_all(&input_folder);
+
+    result
+}
+
+#[tauri::command]
+fn read_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<Option<String>, String> {
+    let summary_file = project_dir(&app, &project_id)?
+        .join("weekly")
+        .join("weekly_summary.json");
+
+    if !summary_file.exists() {
+        return Ok(None);
+    }
+
+    let json = fs::read_to_string(&summary_file)
+        .map_err(|error| format!("lecture synthese weekly echouee: {error}"))?;
+
+    serde_json::from_str::<serde_json::Value>(&json)
+        .map_err(|error| format!("JSON weekly invalide: {error}"))?;
+
+    Ok(Some(json))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -271,6 +436,8 @@ pub fn run() {
             ensure_project_raw_session,
             list_project_storages,
             read_project_raw_sessions,
+            generate_weekly_summary,
+            read_weekly_summary,
             save_project_raw_session
         ])
         .run(tauri::generate_context!())

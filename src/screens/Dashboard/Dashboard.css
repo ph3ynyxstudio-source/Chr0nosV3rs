@@ -120,8 +120,8 @@
 .dashboard-grid {
   display: grid;
   grid-template-rows:
-    clamp(170px, 10.5vw, 180px)
-    clamp(170px, 9vw, 180px)
+    clamp(136px, 8.5vw, 142px)
+    clamp(202px, 12.5vw, 208px)
     clamp(190px, 9vw, 180px);
   gap: 14px;
   height: 100%;

@@ -45,8 +45,7 @@ type TodaySessionCardProps = {
   projectName: string;
   currentDayLabel: string;
   currentDayDate: string;
-  weeklyContext: string;
-  progress: number;
+  projectDescription?: string;
   onOpenSession?: () => void;
 };
 
@@ -54,11 +53,12 @@ export function TodaySessionCard({
   projectName,
   currentDayLabel,
   currentDayDate,
-  weeklyContext,
-  progress,
+  projectDescription,
   onOpenSession,
 }: TodaySessionCardProps) {
   const [hasCopiedPrompt, setHasCopiedPrompt] = useState(false);
+  const displayedDescription =
+    projectDescription?.trim() || "Projet local suivi par sessions hebdomadaires.";
 
   const handleCopyPrompt = async () => {
     try {
@@ -85,18 +85,8 @@ export function TodaySessionCard({
       </div>
 
       <div className="weekly-side-block">
-        <span className="weekly-side-label">Contexte principal</span>
-        <p>{weeklyContext}</p>
-      </div>
-
-      <div className="weekly-side-block">
-        <span className="weekly-side-label">Progression</span>
-        <div className="weekly-progress-row">
-          <div className="weekly-progress-line" aria-hidden="true">
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          <strong>{progress}%</strong>
-        </div>
+        <span className="weekly-side-label">Description du projet</span>
+        <p>{displayedDescription}</p>
       </div>
 
       <div className="weekly-side-actions">

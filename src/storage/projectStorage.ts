@@ -93,3 +93,23 @@ export async function saveProjectRawSession({
     content,
   });
 }
+
+export async function generateWeeklySummary(projectId: string): Promise<string> {
+  if (!isTauriRuntime()) {
+    throw new Error(
+      "Stockage local indisponible hors application Tauri : impossible de generer la synthese.",
+    );
+  }
+
+  return await invoke<string>("generate_weekly_summary", { projectId });
+}
+
+export async function readWeeklySummary(
+  projectId: string,
+): Promise<string | null> {
+  if (!isTauriRuntime()) {
+    return null;
+  }
+
+  return await invoke<string | null>("read_weekly_summary", { projectId });
+}

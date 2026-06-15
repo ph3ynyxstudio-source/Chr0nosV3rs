@@ -45,6 +45,10 @@
   border-color: rgba(84, 214, 255, 0.2);
 }
 
+.weekly-day-card.is-missed {
+  border-color: rgba(181, 116, 255, 0.34);
+}
+
 .weekly-day-card.is-open {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.08),
@@ -65,6 +69,9 @@
 }
 
 .weekly-day-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 42px;
   height: 42px;
   margin-top: 54px;
@@ -72,14 +79,54 @@
   border-radius: 50%;
 }
 
+.weekly-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 8px rgba(84, 214, 255, 0.36));
+}
+
+.weekly-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+}
+
+.weekly-icon--status {
+  color: rgba(103, 121, 158, 0.74);
+}
+
 .weekly-day-card.is-complete .weekly-day-indicator {
   border-color: var(--accent-blue);
   box-shadow: inset 0 0 0 8px rgba(84, 214, 255, 0.12);
 }
 
+.weekly-day-card.is-complete .weekly-icon--status {
+  color: var(--accent-blue);
+}
+
 .weekly-day-card.is-current .weekly-day-indicator {
   border-color: #b574ff;
   box-shadow: inset 0 0 0 8px rgba(181, 116, 255, 0.12);
+}
+
+.weekly-day-card.is-missed .weekly-day-indicator {
+  border-color: #b574ff;
+  box-shadow: inset 0 0 0 8px rgba(181, 116, 255, 0.12);
+}
+
+.weekly-day-card.is-current .weekly-icon--status {
+  color: #c58cff;
+  filter: drop-shadow(0 0 8px rgba(181, 116, 255, 0.42));
+}
+
+.weekly-day-card.is-missed .weekly-icon--status {
+  color: #c58cff;
+  filter: drop-shadow(0 0 8px rgba(181, 116, 255, 0.42));
 }
 
 .weekly-day-status {
@@ -93,5 +140,9 @@
 }
 
 .weekly-day-card.is-current .weekly-day-status {
+  color: #c58cff;
+}
+
+.weekly-day-card.is-missed .weekly-day-status {
   color: #c58cff;
 }

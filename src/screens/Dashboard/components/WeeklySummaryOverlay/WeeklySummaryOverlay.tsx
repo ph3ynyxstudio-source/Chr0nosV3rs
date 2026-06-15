@@ -1,0 +1,148 @@
+import { type WeeklySummary } from "../../projects";
+import "../../../WeeklyView/components/SessionOverlay/SessionOverlay.css";
+import "./WeeklySummaryOverlay.css";
+
+type WeeklySummaryOverlayProps = {
+  isOpen: boolean;
+  weeklySummary?: WeeklySummary;
+  status: string;
+  onClose: () => void;
+};
+
+const formatSummaryDate = (value: string) => {
+  const [datePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month - 1, day));
+};
+
+const SummaryList = ({
+  items,
+  emptyLabel = "Aucun élément renseigné.",
+}: {
+  items: string[];
+  emptyLabel?: string;
+}) => {
+  if (items.length === 0) {
+    return <p>{emptyLabel}</p>;
+  }
+
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+};
+
+export function WeeklySummaryOverlay({
+  isOpen,
+  weeklySummary,
+  status,
+  onClose,
+}: WeeklySummaryOverlayProps) {
+  if (!isOpen || !weeklySummary) {
+    return null;
+  }
+
+  const progressionItems = weeklySummary.progression?.length
+    ? weeklySummary.progression
+    : weeklySummary.achievements;
+  const resolutionItems = weeklySummary.resolutions ?? [];
+  const learningItems = weeklySummary.learnings ?? [];
+  const nextItems = weeklySummary.next?.length
+    ? weeklySummary.next
+    : weeklySummary.notes;
+
+  return (
+    <div className="session-overlay weekly-summary-overlay">
+      <div className="session-overlay-backdrop" aria-hidden="true" />
+
+      <button
+        type="button"
+        className="session-overlay-close-all"
+        onClick={onClose}>
+        Fermer
+      </button>
+
+      <div className="session-overlay-panel is-single weekly-summary-overlay-panel">
+        <article className="session-focus-card is-cyan weekly-summary-focus-card">
+          <header className="session-focus-card-header">
+            <div className="session-focus-card-title-group">
+              <span className="session-focus-card-icon" aria-hidden="true">
+                []
+              </span>
+              <div>
+                <h3>Synthèse hebdomadaire</h3>
+                <p>{formatSummaryDate(weeklySummary.meta.created_at)}</p>
+              </div>
+            </div>
+
+            <div className="session-focus-card-actions">
+              <span className="session-focus-card-status">{status}</span>
+              <button
+                type="button"
+                className="session-focus-card-close"
+                onClick={onClose}>
+                Fermer
+              </button>
+            </div>
+          </header>
+
+          <div className="session-focus-card-scroll">
+            <section className="session-focus-card-section session-focus-card-summary">
+              <h4>Résumé</h4>
+              <p>{weeklySummary.summary}</p>
+            </section>
+
+            <section className="session-focus-card-section">
+              <h4>Progression</h4>
+              <SummaryList
+                items={progressionItems}
+                emptyLabel="Aucune progression renseignée."
+              />
+            </section>
+
+            <section className="session-focus-card-section">
+              <h4>Blocages</h4>
+              <SummaryList
+                items={weeklySummary.blockers}
+                emptyLabel="Aucun blocage renseigné."
+              />
+            </section>
+
+            <section className="session-focus-card-section">
+              <h4>Résolutions</h4>
+              <SummaryList
+                items={resolutionItems}
+                emptyLabel="Aucune résolution renseignée."
+              />
+            </section>
+
+            <section className="session-focus-card-section">
+              <h4>Apprentissages</h4>
+              <SummaryList
+                items={learningItems}
+                emptyLabel="Aucun apprentissage renseigné."
+              />
+            </section>
+
+            <section className="session-focus-card-section">
+              <h4>Suite</h4>
+              <SummaryList items={nextItems} emptyLabel="Aucune suite renseignée." />
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  );
+}

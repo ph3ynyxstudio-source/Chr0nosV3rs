@@ -83,7 +83,7 @@ export function LastSynthesisCard({
             </span>
           ) : !canGenerateWeeklySummary ? (
             <p className="last-synthesis-card-message">
-              Ajoutez au moins une session la semaine précédente pour générer.
+              Ajoutez au moins une session passée pour générer.
             </p>
           ) : null}
           {partialSummaryLabel ? (

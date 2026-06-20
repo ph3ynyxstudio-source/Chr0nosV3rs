@@ -64,8 +64,8 @@ function getWeeklySummaryErrorMessage(error: unknown) {
     return "La synthèse n’a pas pu être générée pour une raison inconnue.";
   }
 
-  if (message.includes("Aucune session trouvée pour la semaine précédente")) {
-    return "Aucune session trouvée pour la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
+  if (message.includes("Aucune session passée trouvée")) {
+    return "Aucune session passée trouvée cette semaine ou la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
   }
 
   if (

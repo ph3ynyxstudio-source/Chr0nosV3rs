@@ -166,17 +166,28 @@ export const getWeekStart = (baseDate: Date) => {
   return weekStart;
 };
 
-const getPreviousWeekDateIds = (baseDate = new Date()) => {
+const getEligibleWeeklySummaryDateIds = (baseDate = new Date()) => {
   const currentWeekStart = getWeekStart(baseDate);
   const previousWeekStart = new Date(currentWeekStart);
   previousWeekStart.setDate(currentWeekStart.getDate() - 7);
 
-  return Array.from({ length: 7 }, (_, index) => {
+  const previousWeekDateIds = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(previousWeekStart);
     date.setDate(previousWeekStart.getDate() + index);
 
     return formatIsoDate(date);
   });
+  const elapsedCurrentWeekDateIds = Array.from(
+    { length: baseDate.getDay() },
+    (_, index) => {
+      const date = new Date(currentWeekStart);
+      date.setDate(currentWeekStart.getDate() + index);
+
+      return formatIsoDate(date);
+    },
+  );
+
+  return [...elapsedCurrentWeekDateIds, ...previousWeekDateIds];
 };
 
 const getProjectWeekNumber = (
@@ -308,7 +319,7 @@ export const buildWeeklyDataFromRawSessions = (
     sessions.map((session) => [session.date, session]),
   );
   const hasWeekSession = weeklyDays.some((day) => day.hasMeaningfulSession);
-  const canGenerateWeeklySummary = getPreviousWeekDateIds(fallbackBaseDate).some(
+  const canGenerateWeeklySummary = getEligibleWeeklySummaryDateIds(fallbackBaseDate).some(
     (dateId) => {
       const session = sessionsByDate.get(dateId);
 

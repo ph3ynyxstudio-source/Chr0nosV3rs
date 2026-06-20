@@ -7,7 +7,7 @@ use tauri::Manager;
 
 const PROJECT_DATA_SUBDIRS: [&str; 5] = ["raw", "weekly", "monthly", "quarterly", "archives"];
 const EXPECTED_WEEKLY_SESSION_COUNT: usize = 7;
-const NO_PREVIOUS_WEEK_SESSION_MESSAGE: &str = "Aucune session trouvée pour la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
+const NO_ELIGIBLE_WEEK_SESSION_MESSAGE: &str = "Aucune session passée trouvée pour la semaine en cours ou la semaine précédente. Ajoutez au moins une session pour générer une synthèse.";
 
 const EMPTY_SESSION_TEMPLATE_SECTIONS: [&str; 7] = [
     "📌 Contexte",
@@ -211,8 +211,7 @@ fn has_meaningful_session_content(content: &str) -> bool {
 }
 
 fn previous_week_dates_for(today: NaiveDate) -> Vec<NaiveDate> {
-    let current_week_start =
-        today - Duration::days(today.weekday().num_days_from_sunday() as i64);
+    let current_week_start = today - Duration::days(today.weekday().num_days_from_sunday() as i64);
     let previous_week_start = current_week_start - Duration::days(7);
 
     (0..7)
@@ -220,12 +219,27 @@ fn previous_week_dates_for(today: NaiveDate) -> Vec<NaiveDate> {
         .collect()
 }
 
-fn previous_week_dates() -> Vec<NaiveDate> {
-    previous_week_dates_for(Local::now().date_naive())
+fn elapsed_current_week_dates_for(today: NaiveDate) -> Vec<NaiveDate> {
+    let current_week_start = today - Duration::days(today.weekday().num_days_from_sunday() as i64);
+
+    (0..today.weekday().num_days_from_sunday())
+        .map(|offset| current_week_start + Duration::days(offset as i64))
+        .collect()
 }
 
-fn prepare_previous_week_input(project_id: &str, raw_dir: &PathBuf) -> Result<PathBuf, String> {
-    prepare_week_input_for_dates(project_id, raw_dir, previous_week_dates()).map(|input| input.folder)
+fn prepare_weekly_input(project_id: &str, raw_dir: &PathBuf) -> Result<PathBuf, String> {
+    let today = Local::now().date_naive();
+    let current_week_result =
+        prepare_week_input_for_dates(project_id, raw_dir, elapsed_current_week_dates_for(today));
+
+    match current_week_result {
+        Ok(input) => Ok(input.folder),
+        Err(error) if error == NO_ELIGIBLE_WEEK_SESSION_MESSAGE => {
+            prepare_week_input_for_dates(project_id, raw_dir, previous_week_dates_for(today))
+                .map(|input| input.folder)
+        }
+        Err(error) => Err(error),
+    }
 }
 
 fn prepare_week_input_for_dates(
@@ -254,7 +268,7 @@ fn prepare_week_input_for_dates(
     }
 
     if source_files.is_empty() {
-        return Err(NO_PREVIOUS_WEEK_SESSION_MESSAGE.to_string());
+        return Err(NO_ELIGIBLE_WEEK_SESSION_MESSAGE.to_string());
     }
 
     let temp_dir = std::env::temp_dir().join(format!(
@@ -325,13 +339,33 @@ mod tests {
     }
 
     #[test]
+    fn elapsed_current_week_includes_yesterday_but_not_today() {
+        let today = NaiveDate::from_ymd_opt(2026, 6, 20).unwrap();
+        let dates = elapsed_current_week_dates_for(today);
+
+        assert_eq!(
+            dates.first().unwrap().format("%Y-%m-%d").to_string(),
+            "2026-06-14"
+        );
+        assert_eq!(
+            dates.last().unwrap().format("%Y-%m-%d").to_string(),
+            "2026-06-19"
+        );
+        assert!(!dates.contains(&today));
+    }
+
+    #[test]
     fn previous_week_input_accepts_one_meaningful_session() {
         let raw_dir = std::env::temp_dir().join(format!(
             "chronosvers-test-raw-{}",
             Local::now().timestamp_millis()
         ));
         fs::create_dir_all(&raw_dir).unwrap();
-        fs::write(raw_dir.join("2026-06-07.md"), empty_session_template("2026-06-07")).unwrap();
+        fs::write(
+            raw_dir.join("2026-06-07.md"),
+            empty_session_template("2026-06-07"),
+        )
+        .unwrap();
         fs::write(
             raw_dir.join("2026-06-08.md"),
             "# 2026-06-08\n\n# ✅ Réalisé\n\n- Une vraie session de travail.\n",
@@ -358,14 +392,18 @@ mod tests {
             Local::now().timestamp_millis()
         ));
         fs::create_dir_all(&raw_dir).unwrap();
-        fs::write(raw_dir.join("2026-06-07.md"), empty_session_template("2026-06-07")).unwrap();
+        fs::write(
+            raw_dir.join("2026-06-07.md"),
+            empty_session_template("2026-06-07"),
+        )
+        .unwrap();
         let result = prepare_week_input_for_dates(
             "test",
             &raw_dir,
             previous_week_dates_for(NaiveDate::from_ymd_opt(2026, 6, 14).unwrap()),
         );
 
-        assert_eq!(result.err().unwrap(), NO_PREVIOUS_WEEK_SESSION_MESSAGE);
+        assert_eq!(result.err().unwrap(), NO_ELIGIBLE_WEEK_SESSION_MESSAGE);
 
         let _ = fs::remove_dir_all(raw_dir);
     }
@@ -631,9 +669,10 @@ fn generate_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<
     fs::create_dir_all(&weekly_dir)
         .map_err(|error| format!("creation dossier weekly echouee: {error}"))?;
 
-    let input_folder = prepare_previous_week_input(&project_id, &raw_dir)?;
-    let result = runner::run_weekly_summary(&weekly_script_path(&app)?, &input_folder, &output_file)
-        .and_then(|json| enrich_weekly_summary_metadata(&json, &output_file));
+    let input_folder = prepare_weekly_input(&project_id, &raw_dir)?;
+    let result =
+        runner::run_weekly_summary(&weekly_script_path(&app)?, &input_folder, &output_file)
+            .and_then(|json| enrich_weekly_summary_metadata(&json, &output_file));
 
     let _ = fs::remove_dir_all(&input_folder);
 
@@ -641,7 +680,10 @@ fn generate_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<
 }
 
 #[tauri::command]
-fn read_weekly_summary(app: tauri::AppHandle, project_id: String) -> Result<Option<String>, String> {
+fn read_weekly_summary(
+    app: tauri::AppHandle,
+    project_id: String,
+) -> Result<Option<String>, String> {
     let summary_file = project_dir(&app, &project_id)?
         .join("weekly")
         .join("weekly_summary.json");

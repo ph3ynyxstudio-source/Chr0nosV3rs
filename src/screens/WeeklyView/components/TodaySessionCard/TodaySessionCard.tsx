@@ -47,6 +47,7 @@ type TodaySessionCardProps = {
   currentDayDate: string;
   projectDescription?: string;
   onOpenSession?: () => void;
+  onOpenRawSessions?: () => void;
 };
 
 export function TodaySessionCard({
@@ -55,6 +56,7 @@ export function TodaySessionCard({
   currentDayDate,
   projectDescription,
   onOpenSession,
+  onOpenRawSessions,
 }: TodaySessionCardProps) {
   const [hasCopiedPrompt, setHasCopiedPrompt] = useState(false);
   const displayedDescription =
@@ -95,6 +97,13 @@ export function TodaySessionCard({
           className="weekly-side-action weekly-side-action-purple"
           onClick={onOpenSession}>
           Ouvrir la session
+        </button>
+
+        <button
+          type="button"
+          className="weekly-side-action weekly-side-action-secondary"
+          onClick={onOpenRawSessions}>
+          Ouvrir le dossier raw
         </button>
 
         <button

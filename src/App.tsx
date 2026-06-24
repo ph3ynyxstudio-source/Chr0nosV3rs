@@ -17,15 +17,19 @@ import {
   ensureProjectRawSession,
   generateWeeklySummary,
   listProjectStorages,
+  openProjectRawDataDir,
+  readProjectMetadata,
   readWeeklySummary,
   readProjectRawSessions,
+  saveProjectMetadata,
   saveProjectRawSession,
+  type ProjectMetadata,
 } from "./storage/projectStorage";
 import "./App.css";
 
 const DASHBOARD_WIDTH = 1620;
 const DASHBOARD_HEIGHT = 900;
-const MVP_MAX_PROJECTS = 5;
+const MVP_MAX_PROJECTS = 10;
 type ProjectOverlayMode = "create" | "edit";
 
 function getDashboardScale() {
@@ -48,12 +52,17 @@ function getLocalDayId(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-function buildProjectFromStorage(projectId: string): Project {
+function buildProjectFromStorage(
+  projectId: string,
+  metadata?: ProjectMetadata | null,
+): Project {
   return createProject({
     id: projectId,
-    name: projectId,
+    name: metadata?.name ?? projectId,
     lastActivity: "Projet local",
     progress: 0,
+    targetWeeks: metadata?.targetWeeks ?? 12,
+    description: metadata?.description,
   });
 }
 
@@ -160,18 +169,20 @@ function App() {
     );
   };
 
-  const handleOpenTodaySession = async (projectId: string) => {
-    const todayDayId = getLocalDayId();
-
+  const handleEnsureRawSession = async (projectId: string, dayId: string) => {
     try {
-      await ensureProjectRawSession(projectId, todayDayId);
+      await ensureProjectRawSession(projectId, dayId);
       await refreshProjectRawSessions(projectId);
     } catch (error) {
       window.alert(`Ouverture de la session impossible : ${String(error)}`);
       return null;
     }
 
-    return todayDayId;
+    return dayId;
+  };
+
+  const handleOpenTodaySession = async (projectId: string) => {
+    return await handleEnsureRawSession(projectId, getLocalDayId());
   };
 
   const handleSaveRawSession = async (
@@ -223,6 +234,15 @@ function App() {
 
       const loadedProjects = await Promise.all(
         projectIds.map(async (projectId) => {
+          const metadata = await readProjectMetadata(projectId).catch(
+            (error) => {
+              window.alert(
+                `Les informations du projet ${projectId} ne peuvent pas etre lues : ${String(error)}`,
+              );
+
+              return null;
+            },
+          );
           const rawSessions = await readProjectRawSessions(projectId);
           const weeklySummaryJson = await readWeeklySummary(projectId).catch(
             (error) => {
@@ -232,7 +252,7 @@ function App() {
             },
           );
           const project = applyRawSessionsToProject(
-            buildProjectFromStorage(projectId),
+            buildProjectFromStorage(projectId, metadata),
             rawSessions,
           );
 
@@ -259,7 +279,7 @@ function App() {
     setIsWeeklySummaryOverlayOpen(false);
   };
 
-  const handleUpdateProjectDetails = ({
+  const handleUpdateProjectDetails = async ({
     projectId,
     name,
     description,
@@ -275,6 +295,20 @@ function App() {
 
     if (!trimmedName) {
       window.alert("Le nom du projet ne peut pas etre vide.");
+      return;
+    }
+
+    try {
+      await saveProjectMetadata({
+        projectId,
+        name: trimmedName,
+        description,
+        targetWeeks: safeTargetWeeks,
+      });
+    } catch (error) {
+      window.alert(
+        `Sauvegarde des informations projet impossible : ${String(error)}`,
+      );
       return;
     }
 
@@ -303,7 +337,7 @@ function App() {
 
   const handleOpenCreateProjectOverlay = () => {
     if (projects.length >= MVP_MAX_PROJECTS) {
-      window.alert("Limite MVP atteinte : 5 projets maximum.");
+      window.alert("Limite MVP atteinte : 10 projets maximum.");
       return;
     }
 
@@ -348,7 +382,7 @@ function App() {
 
       const targetWeeks = Number.parseInt(newProjectTargetWeeks, 10);
 
-      handleUpdateProjectDetails({
+      await handleUpdateProjectDetails({
         projectId: editingProjectId,
         name: trimmedProjectName,
         description: newProjectDescription,
@@ -395,6 +429,13 @@ function App() {
         );
         return;
       }
+
+      await saveProjectMetadata({
+        projectId: nextProject.id,
+        name: nextProject.name,
+        description: nextProject.description,
+        targetWeeks: nextProject.targetWeeks,
+      });
     } catch (error) {
       window.alert(`Creation du stockage projet impossible : ${String(error)}`);
       return;
@@ -461,6 +502,20 @@ function App() {
     }
   };
 
+  const handleOpenProjectRawDataDir = async (projectId: string) => {
+    try {
+      const openedPath = await openProjectRawDataDir(projectId);
+
+      if (!openedPath) {
+        window.alert(
+          "Ouverture du dossier data indisponible hors application Tauri.",
+        );
+      }
+    } catch (error) {
+      window.alert(`Ouverture du dossier data impossible : ${String(error)}`);
+    }
+  };
+
   return (
     <div className="dashboard-lock-viewport">
       <div
@@ -502,7 +557,11 @@ function App() {
             <WeeklyView
               project={activeProject}
               onOpenTodaySession={handleOpenTodaySession}
+              onEnsureRawSession={handleEnsureRawSession}
               onSaveRawSession={handleSaveRawSession}
+              onOpenProjectRawDataDir={(projectId) => {
+                void handleOpenProjectRawDataDir(projectId);
+              }}
               onBack={() => setActiveScreen("dashboard")}
             />
           )}

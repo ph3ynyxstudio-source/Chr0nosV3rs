@@ -15,11 +15,16 @@ import "./WeeklyView.css";
 type WeeklyViewProps = {
   project: Project;
   onOpenTodaySession: (projectId: string) => Promise<string | null>;
+  onEnsureRawSession: (
+    projectId: string,
+    dayId: string,
+  ) => Promise<string | null>;
   onSaveRawSession: (
     projectId: string,
     dayId: string,
     content: string,
   ) => Promise<void>;
+  onOpenProjectRawDataDir: (projectId: string) => void;
   onBack: () => void;
 };
 
@@ -42,7 +47,9 @@ function NeonIcon({
 export function WeeklyView({
   project,
   onOpenTodaySession,
+  onEnsureRawSession,
   onSaveRawSession,
+  onOpenProjectRawDataDir,
   onBack,
 }: WeeklyViewProps) {
   const [openSessionDayIds, setOpenSessionDayIds] = useState<string[]>([]);
@@ -104,7 +111,7 @@ export function WeeklyView({
     });
   };
 
-  const handleDayOpen = (dayId: string) => {
+  const addOpenSessionDay = (dayId: string) => {
     setOpenSessionDayIds((currentDayIds) => {
       if (currentDayIds.includes(dayId) || currentDayIds.length >= 2) {
         return currentDayIds;
@@ -112,6 +119,25 @@ export function WeeklyView({
 
       return [...currentDayIds, dayId];
     });
+  };
+
+  const handleDayOpen = async (day: Project["weeklyDays"][number]) => {
+    if (openSessionDayIds.includes(day.id) || openSessionDayIds.length >= 2) {
+      return;
+    }
+
+    if (day.rawDateId) {
+      addOpenSessionDay(day.id);
+      return;
+    }
+
+    const createdDayId = await onEnsureRawSession(project.id, day.date);
+
+    if (!createdDayId) {
+      return;
+    }
+
+    addOpenSessionDay(`raw-${createdDayId}`);
   };
 
   const handleDayClose = (dayId: string) => {
@@ -202,6 +228,7 @@ export function WeeklyView({
           projectName={project.name}
           synthesisDate={project.synthesisDate}
           weeklySynthesisStatus={project.weeklySynthesisStatus}
+          hasSynthesis={Boolean(project.weeklySummary)}
           onOpenSynthesis={
             project.weeklySummary
               ? () => setIsWeeklySummaryOverlayOpen(true)
@@ -231,7 +258,7 @@ export function WeeklyView({
                   openSessionDayIds.length > 0 &&
                   !openSessionDayIds.includes(day.id)
                 }
-                onClick={() => handleDayOpen(day.id)}
+                onClick={() => void handleDayOpen(day)}
               />
             ))}
           </div>
@@ -248,6 +275,7 @@ export function WeeklyView({
           currentDayDate={currentDay.date}
           projectDescription={project.description}
           onOpenSession={handleTodaySessionOpen}
+          onOpenRawSessions={() => onOpenProjectRawDataDir(project.id)}
         />
       </main>
 

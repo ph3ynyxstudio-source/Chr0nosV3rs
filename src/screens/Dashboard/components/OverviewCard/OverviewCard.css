@@ -33,8 +33,8 @@
 }
 
 .overview-card button {
-  width: 100%;
   margin-top: clamp(21px, 1vw, 28px);
+  width: 100%;
   padding: clamp(14px, 0.8vw, 14px) clamp(8px, 0.85vw, 10px);
   background: rgba(126, 92, 255, 0.14);
   border: 1px solid rgba(126, 92, 255, 0.24);

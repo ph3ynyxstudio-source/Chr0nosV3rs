@@ -13,6 +13,10 @@
   box-shadow: 0 0 28px rgba(17, 224, 255, 0.08);
 }
 
+.weekly-side-card-left.is-pending {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .weekly-card-kicker {
   margin: 0 0 24px;
   font-size: 13px;
@@ -53,6 +57,13 @@
   letter-spacing: 0.06em;
 }
 
+.weekly-side-message {
+  margin: 12px 0 24px;
+  color: rgba(244, 247, 251, 0.68);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .weekly-side-action {
   margin-top: auto;
   min-height: 62px;
@@ -63,4 +74,11 @@
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.weekly-side-action:disabled {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(14, 20, 34, 0.72);
+  color: rgba(244, 247, 251, 0.48);
+  cursor: not-allowed;
 }

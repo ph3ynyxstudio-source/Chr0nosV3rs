@@ -1,9 +1,10 @@
 mod runner;
 
 use chrono::{Datelike, Duration, Local, NaiveDate};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tauri::Manager;
+use tauri_plugin_opener::OpenerExt;
 
 const PROJECT_DATA_SUBDIRS: [&str; 5] = ["raw", "weekly", "monthly", "quarterly", "archives"];
 const EXPECTED_WEEKLY_SESSION_COUNT: usize = 7;
@@ -38,6 +39,16 @@ struct RawSession {
     date: String,
     file_name: String,
     content: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ProjectMetadata {
+    name: String,
+    description: String,
+    target_weeks: u32,
+    created_at: String,
+    updated_at: String,
 }
 
 struct WeeklyInput {
@@ -96,6 +107,53 @@ fn validate_project_id(project_id: &str) -> Result<(), String> {
 fn project_dir(app: &tauri::AppHandle, project_id: &str) -> Result<PathBuf, String> {
     validate_project_id(project_id)?;
     Ok(data_dir(app)?.join("projects").join(project_id))
+}
+
+fn project_metadata_file(app: &tauri::AppHandle, project_id: &str) -> Result<PathBuf, String> {
+    Ok(project_dir(app, project_id)?.join("project.json"))
+}
+
+fn default_project_metadata(project_id: &str) -> ProjectMetadata {
+    let now = Local::now().to_rfc3339();
+
+    ProjectMetadata {
+        name: project_id.to_string(),
+        description: "Projet local suivi par sessions hebdomadaires.".to_string(),
+        target_weeks: 12,
+        created_at: now.clone(),
+        updated_at: now,
+    }
+}
+
+fn write_project_metadata_file(
+    app: &tauri::AppHandle,
+    project_id: &str,
+    metadata: &ProjectMetadata,
+) -> Result<(), String> {
+    let metadata_file = project_metadata_file(app, project_id)?;
+    let json = serde_json::to_string_pretty(metadata)
+        .map_err(|error| format!("serialisation metadata projet echouee: {error}"))?;
+
+    fs::write(&metadata_file, json)
+        .map_err(|error| format!("ecriture metadata projet echouee: {error}"))
+}
+
+fn read_project_metadata_file(
+    app: &tauri::AppHandle,
+    project_id: &str,
+) -> Result<Option<ProjectMetadata>, String> {
+    let metadata_file = project_metadata_file(app, project_id)?;
+
+    if !metadata_file.exists() {
+        return Ok(None);
+    }
+
+    let json = fs::read_to_string(&metadata_file)
+        .map_err(|error| format!("lecture metadata projet echouee: {error}"))?;
+    let metadata = serde_json::from_str::<ProjectMetadata>(&json)
+        .map_err(|error| format!("JSON metadata projet invalide: {error}"))?;
+
+    Ok(Some(metadata))
 }
 
 fn weekly_script_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -507,7 +565,52 @@ fn create_project_storage(app: tauri::AppHandle, project_id: String) -> Result<(
             .map_err(|error| format!("creation dossier {subdir} echouee: {error}"))?;
     }
 
+    if read_project_metadata_file(&app, &project_id)?.is_none() {
+        write_project_metadata_file(&app, &project_id, &default_project_metadata(&project_id))?;
+    }
+
     Ok(())
+}
+
+#[tauri::command]
+fn read_project_metadata(
+    app: tauri::AppHandle,
+    project_id: String,
+) -> Result<Option<ProjectMetadata>, String> {
+    read_project_metadata_file(&app, &project_id)
+}
+
+#[tauri::command]
+fn save_project_metadata(
+    app: tauri::AppHandle,
+    project_id: String,
+    name: String,
+    description: String,
+    target_weeks: u32,
+) -> Result<ProjectMetadata, String> {
+    let project_dir = project_dir(&app, &project_id)?;
+    fs::create_dir_all(&project_dir)
+        .map_err(|error| format!("creation dossier projet echouee: {error}"))?;
+
+    let now = Local::now().to_rfc3339();
+    let created_at = read_project_metadata_file(&app, &project_id)?
+        .map(|metadata| metadata.created_at)
+        .unwrap_or_else(|| now.clone());
+    let metadata = ProjectMetadata {
+        name: name.trim().to_string(),
+        description: description.trim().to_string(),
+        target_weeks: target_weeks.max(1),
+        created_at,
+        updated_at: now,
+    };
+
+    if metadata.name.is_empty() {
+        return Err("nom de projet vide".to_string());
+    }
+
+    write_project_metadata_file(&app, &project_id, &metadata)?;
+
+    Ok(metadata)
 }
 
 #[tauri::command]
@@ -550,6 +653,22 @@ fn delete_project_storage(app: tauri::AppHandle, project_id: String) -> Result<(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+fn open_project_raw_data_dir(app: tauri::AppHandle, project_id: String) -> Result<String, String> {
+    let raw_dir = project_dir(&app, &project_id)?.join("raw");
+
+    fs::create_dir_all(&raw_dir)
+        .map_err(|error| format!("creation dossier raw echouee: {error}"))?;
+
+    let raw_dir_path = raw_dir.display().to_string();
+
+    app.opener()
+        .open_path(raw_dir_path.clone(), None::<&str>)
+        .map_err(|error| format!("ouverture dossier raw echouee: {error}"))?;
+
+    Ok(raw_dir_path)
 }
 
 #[tauri::command]
@@ -710,9 +829,12 @@ pub fn run() {
             delete_project_storage,
             ensure_project_raw_session,
             list_project_storages,
+            open_project_raw_data_dir,
+            read_project_metadata,
             read_project_raw_sessions,
             generate_weekly_summary,
             read_weekly_summary,
+            save_project_metadata,
             save_project_raw_session
         ])
         .run(tauri::generate_context!())

@@ -248,10 +248,10 @@ export function Dashboard({
       </div>
 
       <footer className="footer-status">
-        <span>● Mode local</span>
-        <span>PH3YNYX. Studio</span>
-        <span>◇ Données sécurisées</span>
-        <span>Souveraineté numérique</span>
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
       </footer>
 
       <NewProjectOverlay

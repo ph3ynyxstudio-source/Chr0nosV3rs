@@ -280,10 +280,10 @@ export function WeeklyView({
       </main>
 
       <footer className="footer-status">
-        <span>● Mode local</span>
-        <span>PH3YNYX. Studio</span>
-        <span>◇ Donnees securisees</span>
-        <span>Souverainete numerique</span>
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
       </footer>
 
       <SessionOverlay

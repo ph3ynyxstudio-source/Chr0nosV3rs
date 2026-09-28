@@ -16,3 +16,7 @@
   color: rgba(244, 247, 251, 0.58);
   font-size: 12px;
 }
+
+:root[data-theme="aube"] .weekly-summary-partial {
+  color: var(--text-secondary);
+}

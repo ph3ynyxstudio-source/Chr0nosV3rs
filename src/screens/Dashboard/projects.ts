@@ -82,6 +82,8 @@ const formatIsoDate = (date: Date) => {
 
 const formatUiDate = formatIsoDate;
 
+export const getTodayDateId = () => formatIsoDate(new Date());
+
 const formatShortDate = (date: Date) => {
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -144,14 +146,14 @@ const formatRangeLabel = (startDate: Date, endDate: Date) => {
   return `${formatIsoDate(startDate)} - ${formatIsoDate(endDate)}`;
 };
 
-const getWeekdayLabel = (date: Date) =>
+export const getWeekdayLabel = (date: Date) =>
   new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
   })
     .format(date)
     .replace(/^./, (value) => value.toUpperCase());
 
-const parseRawDate = (dateValue: string) => {
+export const parseRawDate = (dateValue: string) => {
   const [year, month, day] = dateValue.split("-").map(Number);
 
   return new Date(year, month - 1, day);

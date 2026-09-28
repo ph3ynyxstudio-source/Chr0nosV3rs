@@ -1,4 +1,5 @@
 import calendarNeonIcon from "../../../../assets/icons/neon/calendar-neon.svg?raw";
+import closeNeonIcon from "../../../../assets/icons/neon/close-neon.svg?raw";
 import { type WeeklySummary } from "../../projects";
 import "../../../WeeklyView/components/SessionOverlay/SessionOverlay.css";
 import "./WeeklySummaryOverlay.css";
@@ -125,8 +126,12 @@ export function WeeklySummaryOverlay({
               <button
                 type="button"
                 className="session-focus-card-close"
-                onClick={onClose}>
-                Fermer
+                onClick={onClose}
+                aria-label="Fermer la synthèse">
+                <NeonIcon
+                  className="session-focus-card-close-icon"
+                  svg={closeNeonIcon}
+                />
               </button>
             </div>
           </header>

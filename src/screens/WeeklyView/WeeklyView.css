@@ -50,10 +50,13 @@
 }
 
 .weekly-view-logo {
-  width: 290px;
+  width: 181px;
   object-fit: contain;
-  transform: translateX(-28px);
-  transform-origin: left center;
+  object-view-box: inset(134px 548px 80px 205px);
+}
+
+:root[data-theme="aube"] .weekly-view-logo {
+  object-view-box: inset(154px 121px 129px 124px);
 }
 
 .weekly-view-title-group {
@@ -199,4 +202,43 @@
   line-height: 1.45;
   text-align: center;
   background: rgba(13, 18, 33, 0.58);
+}
+
+:root[data-theme="aube"] .weekly-view-shell {
+  border-color: var(--border-card);
+  background: var(--bg-app);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .weekly-view-shell::before {
+  display: none;
+}
+
+:root[data-theme="aube"] .weekly-view-title-group h1 {
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .weekly-view-project-chip,
+:root[data-theme="aube"] .weekly-view-week-chip,
+:root[data-theme="aube"] .weekly-view-range-chip,
+:root[data-theme="aube"] .weekly-view-range-arrow,
+:root[data-theme="aube"] .weekly-view-close-button {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .weekly-view-header .weekly-icon {
+  filter: none;
+}
+
+:root[data-theme="aube"] .weekly-board-kicker,
+:root[data-theme="aube"] .weekly-board-heading p {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .weekly-board-note {
+  border-color: rgba(109, 79, 214, 0.3);
+  background: var(--bg-card);
+  color: var(--text-secondary);
 }

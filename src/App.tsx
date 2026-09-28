@@ -30,7 +30,19 @@ import "./App.css";
 const DASHBOARD_WIDTH = 1620;
 const DASHBOARD_HEIGHT = 900;
 const MVP_MAX_PROJECTS = 10;
+const THEME_STORAGE_KEY = "chronos-theme";
 type ProjectOverlayMode = "create" | "edit";
+type Theme = "sombre" | "aube";
+
+function getStoredTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "sombre";
+  }
+
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+
+  return storedTheme === "aube" ? "aube" : "sombre";
+}
 
 function getDashboardScale() {
   if (typeof window === "undefined") {
@@ -114,7 +126,6 @@ function App() {
     useState<ProjectOverlayMode>("create");
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectTargetWeeks, setNewProjectTargetWeeks] = useState("12");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [activeProjectId, setActiveProjectId] = useState<string | null>(
     initialProjects[0]?.id ?? null,
@@ -124,6 +135,12 @@ function App() {
   >(null);
   const [isWeeklySummaryOverlayOpen, setIsWeeklySummaryOverlayOpen] =
     useState(false);
+  const [theme, setTheme] = useState<Theme>(getStoredTheme);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -344,7 +361,6 @@ function App() {
     setProjectOverlayMode("create");
     setEditingProjectId(null);
     setNewProjectName(buildNewProjectName(projects));
-    setNewProjectTargetWeeks("12");
     setNewProjectDescription("");
     setIsCreateProjectOverlayOpen(true);
   };
@@ -353,7 +369,6 @@ function App() {
     setProjectOverlayMode("edit");
     setEditingProjectId(project.id);
     setNewProjectName(project.name);
-    setNewProjectTargetWeeks(String(project.targetWeeks));
     setNewProjectDescription(project.description);
     setIsCreateProjectOverlayOpen(true);
     setActiveProjectId(project.id);
@@ -364,7 +379,6 @@ function App() {
     setProjectOverlayMode("create");
     setEditingProjectId(null);
     setNewProjectName("");
-    setNewProjectTargetWeeks("12");
     setNewProjectDescription("");
   };
 
@@ -380,20 +394,21 @@ function App() {
         return;
       }
 
-      const targetWeeks = Number.parseInt(newProjectTargetWeeks, 10);
+      const editingProject = projects.find(
+        (project) => project.id === editingProjectId,
+      );
 
       await handleUpdateProjectDetails({
         projectId: editingProjectId,
         name: trimmedProjectName,
         description: newProjectDescription,
-        targetWeeks: Number.isFinite(targetWeeks) ? targetWeeks : 12,
+        targetWeeks: editingProject?.targetWeeks ?? 12,
       });
 
       setIsCreateProjectOverlayOpen(false);
       setProjectOverlayMode("create");
       setEditingProjectId(null);
       setNewProjectName("");
-      setNewProjectTargetWeeks("12");
       setNewProjectDescription("");
       return;
     }
@@ -410,13 +425,11 @@ function App() {
     }
 
     const createdAt = new Date();
-    const targetWeeks = Number.parseInt(newProjectTargetWeeks, 10);
     const nextProject = createProject({
       id: trimmedProjectName,
       name: trimmedProjectName,
       lastActivity: formatProjectLastActivity(createdAt),
       progress: 0,
-      targetWeeks: Number.isFinite(targetWeeks) ? targetWeeks : 12,
       description: newProjectDescription,
     });
 
@@ -447,7 +460,6 @@ function App() {
     setProjectOverlayMode("create");
     setEditingProjectId(null);
     setNewProjectName("");
-    setNewProjectTargetWeeks("12");
     setNewProjectDescription("");
   };
 
@@ -533,10 +545,8 @@ function App() {
               isCreateProjectOverlayOpen={isCreateProjectOverlayOpen}
               projectOverlayMode={projectOverlayMode}
               newProjectName={newProjectName}
-              newProjectTargetWeeks={newProjectTargetWeeks}
               newProjectDescription={newProjectDescription}
               onNewProjectNameChange={setNewProjectName}
-              onNewProjectTargetWeeksChange={setNewProjectTargetWeeks}
               onNewProjectDescriptionChange={setNewProjectDescription}
               onCancelCreateProject={handleCancelCreateProject}
               onConfirmCreateProject={handleConfirmProjectOverlay}
@@ -547,6 +557,14 @@ function App() {
               isWeeklySummaryOverlayOpen={isWeeklySummaryOverlayOpen}
               onOpenWeeklySummary={() => setIsWeeklySummaryOverlayOpen(true)}
               onCloseWeeklySummary={() => setIsWeeklySummaryOverlayOpen(false)}
+              onEnsureRawSession={handleEnsureRawSession}
+              onSaveRawSession={handleSaveRawSession}
+              theme={theme}
+              onToggleTheme={() =>
+                setTheme((currentTheme) =>
+                  currentTheme === "sombre" ? "aube" : "sombre",
+                )
+              }
               onOpenWeeklyView={(projectId) => {
                 void refreshProjectRawSessions(projectId);
                 setActiveProjectId(projectId);
@@ -563,6 +581,7 @@ function App() {
                 void handleOpenProjectRawDataDir(projectId);
               }}
               onBack={() => setActiveScreen("dashboard")}
+              theme={theme}
             />
           )}
         </main>

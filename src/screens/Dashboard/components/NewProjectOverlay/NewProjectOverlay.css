@@ -45,12 +45,6 @@
   font-weight: 600;
 }
 
-.new-project-overlay-copy {
-  margin: 12px 0 0;
-  color: rgba(244, 247, 251, 0.72);
-  line-height: 1.45;
-}
-
 .new-project-overlay-field {
   display: grid;
   gap: 10px;
@@ -118,4 +112,42 @@
 .new-project-overlay-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.44;
+}
+
+:root[data-theme="aube"] .new-project-overlay-backdrop {
+  background: rgba(18, 21, 28, 0.32);
+}
+
+:root[data-theme="aube"] .new-project-overlay-panel {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  box-shadow: 0 20px 48px rgba(18, 21, 28, 0.12);
+}
+
+:root[data-theme="aube"] .new-project-overlay-field span {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .new-project-overlay-field input,
+:root[data-theme="aube"] .new-project-overlay-field textarea {
+  border-color: var(--border-card);
+  background: #f9fafb;
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .new-project-overlay-field input:focus,
+:root[data-theme="aube"] .new-project-overlay-field textarea:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(14, 165, 196, 0.12);
+}
+
+:root[data-theme="aube"] .new-project-overlay-actions button {
+  border-color: var(--border-card);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .new-project-overlay-actions button.is-primary {
+  border-color: var(--accent-blue);
+  background: rgba(14, 165, 196, 0.1);
 }

@@ -26,6 +26,7 @@ type WeeklyViewProps = {
   ) => Promise<void>;
   onOpenProjectRawDataDir: (projectId: string) => void;
   onBack: () => void;
+  theme: "sombre" | "aube";
 };
 
 function NeonIcon({
@@ -51,6 +52,7 @@ export function WeeklyView({
   onSaveRawSession,
   onOpenProjectRawDataDir,
   onBack,
+  theme,
 }: WeeklyViewProps) {
   const [openSessionDayIds, setOpenSessionDayIds] = useState<string[]>([]);
   const [isWeeklySummaryOverlayOpen, setIsWeeklySummaryOverlayOpen] =
@@ -176,7 +178,11 @@ export function WeeklyView({
       <header className="weekly-view-header">
         <div className="weekly-view-brand">
           <img
-            src="/assets/TEXTE_Style_officiel_2000x500.png"
+            src={
+              theme === "aube"
+                ? "/assets/theme clair titre.png"
+                : "/assets/TEXTE_Style_officiel_2000x500.png"
+            }
             alt="CHR0NOSV3RS"
             className="weekly-view-logo"
           />

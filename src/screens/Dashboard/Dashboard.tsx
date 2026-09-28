@@ -1,9 +1,15 @@
 import { ProjectCard } from "../../components/ProjectCard/ProjectCard";
 import { NewProjectCard } from "./components/NewProjectCard/NewProjectCard";
 import { NewProjectOverlay } from "./components/NewProjectOverlay/NewProjectOverlay";
-import { OverviewCard } from "./components/OverviewCard/OverviewCard";
+import { SessionShortcut } from "./components/SessionShortcut/SessionShortcut";
+import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
 import { WeeklySummaryOverlay } from "./components/WeeklySummaryOverlay/WeeklySummaryOverlay";
-import type { Project } from "./projects";
+import {
+  getTodayDateId,
+  getWeekdayLabel,
+  parseRawDate,
+  type Project,
+} from "./projects";
 import "./Dashboard.css";
 
 type DashboardProps = {
@@ -15,10 +21,8 @@ type DashboardProps = {
   isCreateProjectOverlayOpen: boolean;
   projectOverlayMode: "create" | "edit";
   newProjectName: string;
-  newProjectTargetWeeks: string;
   newProjectDescription: string;
   onNewProjectNameChange: (value: string) => void;
-  onNewProjectTargetWeeksChange: (value: string) => void;
   onNewProjectDescriptionChange: (value: string) => void;
   onCancelCreateProject: () => void;
   onConfirmCreateProject: () => void;
@@ -29,6 +33,17 @@ type DashboardProps = {
   isWeeklySummaryOverlayOpen: boolean;
   onOpenWeeklySummary: () => void;
   onCloseWeeklySummary: () => void;
+  onEnsureRawSession: (
+    projectId: string,
+    dayId: string,
+  ) => Promise<string | null>;
+  onSaveRawSession: (
+    projectId: string,
+    dayId: string,
+    content: string,
+  ) => Promise<void>;
+  theme: "sombre" | "aube";
+  onToggleTheme: () => void;
 };
 
 export function Dashboard({
@@ -40,10 +55,8 @@ export function Dashboard({
   isCreateProjectOverlayOpen,
   projectOverlayMode,
   newProjectName,
-  newProjectTargetWeeks,
   newProjectDescription,
   onNewProjectNameChange,
-  onNewProjectTargetWeeksChange,
   onNewProjectDescriptionChange,
   onCancelCreateProject,
   onConfirmCreateProject,
@@ -51,92 +64,102 @@ export function Dashboard({
   onOpenEditProjectOverlay,
   isWeeklySummaryOverlayOpen,
   onCloseWeeklySummary,
+  onEnsureRawSession,
+  onSaveRawSession,
+  theme,
+  onToggleTheme,
 }: DashboardProps) {
   const initialProject = projects[0];
   const selectedProject =
     projects.find((project) => project.id === activeProjectId) ?? null;
   const displayProject = selectedProject ?? initialProject;
-  const placeholderCount = Math.max(0, 3 - projects.length);
-  const shouldScrollProjects = projects.length >= 4;
+
+  const selectedProjectWeeklyDays = selectedProject?.weeklyDays ?? [];
+  const todayDay =
+    selectedProjectWeeklyDays.find((day) => day.status === "En cours") ??
+    selectedProjectWeeklyDays.find((day) => day.status === "À créer") ??
+    selectedProjectWeeklyDays[selectedProjectWeeklyDays.length - 1] ??
+    null;
+  const selectedProjectRawSessions = selectedProject?.rawSessions ?? [];
+  const lastSession =
+    selectedProjectRawSessions[selectedProjectRawSessions.length - 1] ?? null;
+
+  const handleSaveTodaySession = async (content: string) => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const dayId = todayDay?.rawDateId ?? getTodayDateId();
+
+    await onEnsureRawSession(selectedProject.id, dayId);
+    await onSaveRawSession(selectedProject.id, dayId, content);
+  };
 
   return (
     <section className="chronos-shell">
+      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
+
       <div className="main-content">
-        <div className="top-workspace">
+        <div className="side-column">
           <div className="text-stylized-zone">
             <img
-              src="/assets/TEXTE_Style_officiel_2000x500.png"
+              src={
+                theme === "aube"
+                  ? "/assets/theme clair titre.png"
+                  : "/assets/TEXTE_Style_officiel_2000x500.png"
+              }
               alt="CHR0NOSV3RS"
               className="app-logo"
             />
-            <div className="hero-copy">
-              <div className="hero-copy-lead">
-                <p>Ton temps. Ta mémoire. Ta progression.</p>
+          </div>
+
+          <aside className="project-sidebar">
+            {projects.map((project) => (
+              <div key={project.id} className="project-sidebar-item">
+                <ProjectCard
+                  name={project.name}
+                  lastActivity={project.lastActivity}
+                  isActive={activeProjectId === project.id}
+                  onClick={() => onProjectSelect(project)}
+                  onDelete={() => onDeleteProject(project)}
+                  onEdit={() => onOpenEditProjectOverlay(project)}
+                  canDelete={projects.length > 1}
+                />
               </div>
-              <div className="hero-copy-body">
-                <p>Chaque projet compte.</p>
-                <p>Chaque souvenir construit.</p>
-                <p>Chaque synthese demeure.</p>
-              </div>
+            ))}
+
+            <div className="project-sidebar-item">
+              <NewProjectCard onClick={onOpenCreateProjectOverlay} />
             </div>
-          </div>
-
-          <div className="center-visual">
-            <img
-              src="/assets/Dashboard-asset.png"
-              alt="Chronos Visual"
-              className="main-asset"
-            />
-          </div>
-
-          <section className="dashboard-grid" />
+          </aside>
         </div>
 
-        <section className="bottom-layout-zone">
-          <OverviewCard
+        <div className="center-visual">
+          <SessionShortcut
             projectName={selectedProject?.name ?? null}
-            activeWeek={selectedProject?.activeWeek ?? null}
+            disabled={!selectedProject}
             onOpenWeeklyView={() => {
               if (selectedProject) {
                 onOpenWeeklyView(selectedProject.id);
               }
             }}
+            lastSession={
+              lastSession
+                ? {
+                    label: getWeekdayLabel(parseRawDate(lastSession.date)),
+                    date: lastSession.date,
+                    content: lastSession.content,
+                  }
+                : null
+            }
+            today={{
+              label: todayDay?.label ?? "Aujourd'hui",
+              date: todayDay?.date ?? "",
+              initialContent: todayDay?.rawContent ?? "",
+            }}
+            onSaveToday={handleSaveTodaySession}
           />
-
-          <div
-            className={`projects-center-zone ${
-              shouldScrollProjects ? "is-scrollable" : ""
-            }`}>
-            <div className="projects-center-track">
-              {projects.map((project) => (
-                <div key={project.id} className="projects-center-item">
-                  <ProjectCard
-                    name={project.name}
-                    lastActivity={project.lastActivity}
-                    isActive={activeProjectId === project.id}
-                    onClick={() => onProjectSelect(project)}
-                    onDelete={() => onDeleteProject(project)}
-                    onEdit={() => onOpenEditProjectOverlay(project)}
-                    canDelete={projects.length > 1}
-                  />
-                </div>
-              ))}
-
-              {!shouldScrollProjects &&
-                Array.from({ length: placeholderCount }, (_, index) => (
-                  <div
-                    key={`placeholder-${index + 1}`}
-                    className="projects-center-placeholder"
-                    aria-hidden="true"
-                  />
-                ))}
-            </div>
-          </div>
-
-          <div className="new-project-fixed-slot">
-            <NewProjectCard onClick={onOpenCreateProjectOverlay} />
-          </div>
-        </section>
+        </div>
       </div>
 
       <footer className="footer-status">
@@ -150,10 +173,8 @@ export function Dashboard({
         isOpen={isCreateProjectOverlayOpen}
         mode={projectOverlayMode}
         projectName={newProjectName}
-        projectTargetWeeks={newProjectTargetWeeks}
         projectDescription={newProjectDescription}
         onProjectNameChange={onNewProjectNameChange}
-        onProjectTargetWeeksChange={onNewProjectTargetWeeksChange}
         onProjectDescriptionChange={onNewProjectDescriptionChange}
         onCancel={onCancelCreateProject}
         onConfirm={onConfirmCreateProject}

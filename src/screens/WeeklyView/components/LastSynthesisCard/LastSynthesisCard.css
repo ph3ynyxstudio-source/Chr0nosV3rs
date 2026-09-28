@@ -82,3 +82,36 @@
   color: rgba(244, 247, 251, 0.48);
   cursor: not-allowed;
 }
+
+:root[data-theme="aube"] .weekly-side-card {
+  background: var(--bg-card);
+  backdrop-filter: none;
+}
+
+:root[data-theme="aube"] .weekly-side-card-left,
+:root[data-theme="aube"] .weekly-side-card-left.is-pending {
+  border-color: var(--border-card);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .weekly-card-project-name,
+:root[data-theme="aube"] .weekly-side-label,
+:root[data-theme="aube"] .weekly-side-message {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .weekly-side-block {
+  border-top-color: var(--border-card);
+}
+
+:root[data-theme="aube"] .weekly-side-action {
+  border-color: var(--accent-blue);
+  background: rgba(14, 165, 196, 0.1);
+  color: var(--accent-blue);
+}
+
+:root[data-theme="aube"] .weekly-side-action:disabled {
+  border-color: var(--border-card);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-secondary);
+}

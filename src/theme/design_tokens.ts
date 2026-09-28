@@ -15,3 +15,22 @@ export const DESIGN_TOKENS = {
     },
   },
 } as const;
+
+export const AUBE_THEME_TOKENS = {
+  colors: {
+    bg: {
+      app: "#f6f7fa",
+      card: "#ffffff",
+      border: "#e2e5eb",
+    },
+    text: {
+      primary: "#12151c",
+      secondary: "#6b7280",
+    },
+    accent: {
+      blue: "#0ea5c4",
+      purple: "#6d4fd6",
+    },
+    danger: "#d64545",
+  },
+} as const;

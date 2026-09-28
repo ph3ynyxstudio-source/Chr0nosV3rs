@@ -4,10 +4,8 @@ type NewProjectOverlayProps = {
   isOpen: boolean;
   mode?: "create" | "edit";
   projectName: string;
-  projectTargetWeeks: string;
   projectDescription: string;
   onProjectNameChange: (value: string) => void;
-  onProjectTargetWeeksChange: (value: string) => void;
   onProjectDescriptionChange: (value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
@@ -17,10 +15,8 @@ export function NewProjectOverlay({
   isOpen,
   mode = "create",
   projectName,
-  projectTargetWeeks,
   projectDescription,
   onProjectNameChange,
-  onProjectTargetWeeksChange,
   onProjectDescriptionChange,
   onCancel,
   onConfirm,
@@ -44,14 +40,7 @@ export function NewProjectOverlay({
         <p className="new-project-overlay-kicker" id="new-project-overlay-title">
           {isEditMode ? "Modifier le nom du projet" : "Nouveau projet"}
         </p>
-        {isEditMode ? null : (
-          <>
-            <h2>Définir le nom du projet</h2>
-            <p className="new-project-overlay-copy">
-              Choisissez un nom simple pour créer le projet dans le MVP local.
-            </p>
-          </>
-        )}
+        {isEditMode ? null : <h2>Définir le nom du projet</h2>}
 
         <label className="new-project-overlay-field">
           {isEditMode ? null : <span>Nom du projet</span>}
@@ -66,32 +55,17 @@ export function NewProjectOverlay({
         </label>
 
         {isEditMode ? null : (
-          <>
-            <label className="new-project-overlay-field">
-              <span>Objectif du projet en semaines</span>
-              <input
-                type="number"
-                min="1"
-                value={projectTargetWeeks}
-                onChange={(event) =>
-                  onProjectTargetWeeksChange(event.target.value)
-                }
-                placeholder="12"
-              />
-            </label>
-
-            <label className="new-project-overlay-field">
-              <span>Description courte du projet</span>
-              <textarea
-                value={projectDescription}
-                onChange={(event) =>
-                  onProjectDescriptionChange(event.target.value)
-                }
-                placeholder="Projet local suivi par sessions hebdomadaires."
-                rows={3}
-              />
-            </label>
-          </>
+          <label className="new-project-overlay-field">
+            <span>Description courte du projet</span>
+            <textarea
+              value={projectDescription}
+              onChange={(event) =>
+                onProjectDescriptionChange(event.target.value)
+              }
+              placeholder="Projet local suivi par sessions hebdomadaires."
+              rows={3}
+            />
+          </label>
         )}
 
         <div className="new-project-overlay-actions">

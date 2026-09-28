@@ -25,5 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Markdown files (as requested)
+# Markdown files (as requested), sauf la documentation officielle
 *.md
+!🔒docs/**/*.md

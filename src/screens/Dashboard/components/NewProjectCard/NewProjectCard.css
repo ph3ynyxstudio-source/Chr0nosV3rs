@@ -59,3 +59,18 @@
   font-size: clamp(8px, 1vw, 10px);
   line-height: 1.25;
 }
+
+:root[data-theme="aube"] .new-project-card {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .new-project-card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .new-project-card span {
+  border-color: var(--border-card);
+}

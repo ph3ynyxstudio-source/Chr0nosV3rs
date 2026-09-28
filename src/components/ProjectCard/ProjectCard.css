@@ -4,13 +4,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
   min-width: 0;
-  min-height: 0;
-  padding: clamp(14px, 1.2vw, 18px) clamp(12px, 1vw, 16px)
-    clamp(12px, 1vw, 16px);
+  padding: 12px 14px;
   border: 1px solid rgba(84, 214, 255, 0.08);
-  border-radius: 18px;
+  border-radius: 16px;
   background: linear-gradient(
     180deg,
     rgba(10, 18, 36, 0.88),
@@ -38,16 +35,20 @@
 }
 
 .project-card h3 {
-  margin: 0 0 clamp(8px, 0.7vw, 12px);
-  font-size: clamp(27px, 3.1vw, 27px);
+  margin: 0;
+  font-size: 22px;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .project-card-actions {
@@ -61,8 +62,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   border: 1px solid rgba(84, 214, 255, 0.34);
   border-radius: 999px;
@@ -85,8 +86,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   filter: drop-shadow(0 0 8px rgba(84, 214, 255, 0.36));
 }
 
@@ -101,13 +102,12 @@
 .project-card-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: auto;
-  padding-top: clamp(10px, 0.9vw, 14px);
+  margin-top: 6px;
 }
 
 .project-delete-button {
   flex: 0 0 auto;
-  min-height: 30px;
+  min-height: 26px;
   padding: 0 10px;
   border: 1px solid rgba(255, 88, 88, 0.34);
   border-radius: 999px;
@@ -128,23 +128,59 @@
 }
 
 .project-card small {
-  font-size: clamp(14px, 0.95vw 15px);
+  display: block;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .project-card p {
-  margin: 6px 0 0;
-  font-size: clamp(14px, 0.95vw, 16px);
-  line-height: 6;
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.3;
 }
 
-.project-card p {
-  margin: 4px 0 0;
-  font-size: clamp(10px, 0.88vw, 12px);
-  line-height: 1.25;
+:root[data-theme="aube"] .project-card {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  box-shadow: none;
 }
 
-.project-card small,
-.project-card p {
-  font-size: 16px !important;
-  line-height: 1.35;
+:root[data-theme="aube"] .project-card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .project-card.active {
+  border-color: var(--accent-purple);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .project-edit-button {
+  border-color: var(--border-card);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .project-edit-button:hover {
+  border-color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="aube"] .project-edit-icon {
+  filter: none;
+}
+
+:root[data-theme="aube"] .project-delete-button {
+  border-color: var(--border-card);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .project-delete-button:hover {
+  border-color: var(--danger);
+  background: rgba(214, 69, 69, 0.08);
+  color: var(--danger);
 }

@@ -15,30 +15,49 @@
   overflow: hidden;
 }
 
-.main-content {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) 230px;
-  gap: 14px;
-  height: calc(100% - 20px);
+:root[data-theme="aube"] .chronos-shell {
+  border-color: var(--border-card);
+  background: var(--bg-app);
+  box-shadow: none;
 }
 
-.top-workspace {
+.main-content {
   display: grid;
-  grid-template-columns: 1fr 1.55fr 0.75fr;
-  gap: 26px;
-  align-items: center;
+  grid-template-columns: 326px minmax(0, 1fr);
+  gap: 20px;
+  height: calc(100% - 20px);
   min-height: 0;
+}
+
+.side-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-left: 20px;
+}
+
+.project-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+  min-height: 0;
+  max-height: 620px;
+  padding-right: 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.project-sidebar-item {
+  flex: 0 0 auto;
 }
 
 .text-stylized-zone {
   position: relative;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  min-width: 0;
-  padding: 22px 0 0 18px;
+  flex: 0 0 150px;
+  padding: 6px 0 0 19px;
   overflow: visible;
 }
 
@@ -55,139 +74,27 @@
   pointer-events: none;
 }
 
+/* Les deux PNG ont des marges transparentes : object-view-box recadre sur le logo lui-même. */
 .app-logo {
   position: relative;
   z-index: 1;
-  width: 500px;
+  display: block;
+  width: 447px;
   max-width: none;
-  max-height: 128px;
   object-fit: contain;
-  object-position: left top;
-  transform: translate(-42px, -38px);
-  transform-origin: left top;
+  object-view-box: inset(134px 548px 80px 205px);
+  pointer-events: none;
 }
 
-.hero-copy {
-  position: relative;
-  z-index: 1;
-  margin-top: 10px;
-  width: 500px;
-  max-width: none;
-  color: rgba(244, 247, 251, 0.92);
-  font-family: "Segoe UI Light", "Segoe UI", system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  letter-spacing: 0.1px;
-  line-height: 1.38;
-  text-shadow: 0 0 18px rgba(84, 214, 255, 0.05);
-}
-
-.hero-copy p {
-  margin: 0;
-}
-
-.hero-copy-lead {
-  display: none;
-}
-
-.hero-copy-body {
-  display: none;
-}
-
-.hero-copy-body p + p {
-  margin-top: 4px;
+:root[data-theme="aube"] .app-logo {
+  object-view-box: inset(154px 121px 129px 124px);
 }
 
 .center-visual {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  min-width: 0;
-  overflow: visible;
-}
-
-.main-asset {
-  width: min(125%, 980px);
-  max-height: min(125%, 980px);
-  object-fit: contain;
-  transform: scale(1.08) translateY(30px);
-  transform-origin: center center;
-  position: relative;
-  z-index: 0;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-rows:
-    clamp(136px, 8.5vw, 142px)
-    clamp(202px, 12.5vw, 208px)
-    clamp(190px, 9vw, 180px);
-  gap: 14px;
-  height: 100%;
-  align-items: stretch;
-  position: relative;
-  z-index: 0;
-}
-
-.dashboard-grid > * {
-  min-height: 0;
-  height: 100%;
-}
-
-.bottom-layout-zone {
-  display: grid;
-  grid-template-columns: 1.08fr repeat(3, 1fr) 1.2fr;
-  gap: 12px;
-  height: 230px;
-  align-items: stretch;
-  position: relative;
-  z-index: 0;
-}
-
-.bottom-layout-zone > * {
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
-  height: 100%;
-}
-
-.projects-center-zone {
-  grid-column: 2 / 5;
-  min-width: 0;
-  overflow: hidden;
-  --project-slot-width: calc((100% - 24px) / 3);
-}
-
-.projects-center-zone.is-scrollable {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-}
-
-.projects-center-track {
-  display: flex;
-  gap: 12px;
-  height: 100%;
-  min-width: 0;
-}
-
-.projects-center-item,
-.projects-center-placeholder {
-  flex: 0 0 var(--project-slot-width);
-  width: var(--project-slot-width);
-  min-width: 0;
-  height: 100%;
-}
-
-.projects-center-placeholder {
-  pointer-events: none;
-}
-
-.new-project-fixed-slot {
-  grid-column: 5;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
 }
 
 .footer-status {

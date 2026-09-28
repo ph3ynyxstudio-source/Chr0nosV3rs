@@ -146,3 +146,67 @@
 .weekly-day-card.is-missed .weekly-day-status {
   color: #c58cff;
 }
+
+:root[data-theme="aube"] .weekly-day-card {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-current {
+  border-color: var(--accent-purple);
+  box-shadow: none;
+  background: var(--bg-card);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-complete {
+  border-color: rgba(14, 165, 196, 0.45);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-missed {
+  border-color: rgba(109, 79, 214, 0.35);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-open {
+  box-shadow: 0 0 0 2px rgba(18, 21, 28, 0.08);
+}
+
+:root[data-theme="aube"] .weekly-day-label,
+:root[data-theme="aube"] .weekly-day-card strong {
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .weekly-day-indicator {
+  border-color: rgba(107, 114, 128, 0.35);
+}
+
+:root[data-theme="aube"] .weekly-day-card .weekly-icon {
+  filter: none;
+}
+
+:root[data-theme="aube"] .weekly-day-card .weekly-icon--status,
+:root[data-theme="aube"] .weekly-day-status {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-complete .weekly-day-indicator {
+  border-color: var(--accent-blue);
+  box-shadow: inset 0 0 0 8px rgba(14, 165, 196, 0.1);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-complete .weekly-icon--status,
+:root[data-theme="aube"] .weekly-day-card.is-complete .weekly-day-status {
+  color: var(--accent-blue);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-current .weekly-day-indicator,
+:root[data-theme="aube"] .weekly-day-card.is-missed .weekly-day-indicator {
+  border-color: var(--accent-purple);
+  box-shadow: inset 0 0 0 8px rgba(109, 79, 214, 0.1);
+}
+
+:root[data-theme="aube"] .weekly-day-card.is-current .weekly-icon--status,
+:root[data-theme="aube"] .weekly-day-card.is-missed .weekly-icon--status,
+:root[data-theme="aube"] .weekly-day-card.is-current .weekly-day-status,
+:root[data-theme="aube"] .weekly-day-card.is-missed .weekly-day-status {
+  color: var(--accent-purple);
+}

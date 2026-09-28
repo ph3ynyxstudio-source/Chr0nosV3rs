@@ -12,6 +12,17 @@
   --accent-purple: #7e5cff;
 }
 
+:root[data-theme="aube"] {
+  --bg-app: #f6f7fa;
+  --bg-card: #ffffff;
+  --border-card: #e2e5eb;
+  --text-primary: #12151c;
+  --text-secondary: #6b7280;
+  --accent-blue: #0ea5c4;
+  --accent-purple: #6d4fd6;
+  --danger: #d64545;
+}
+
 body {
   margin: 0;
   height: 100vh;

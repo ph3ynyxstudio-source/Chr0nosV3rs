@@ -362,3 +362,127 @@
   font-size: 15px;
   text-align: center;
 }
+
+:root[data-theme="aube"] .session-overlay-backdrop {
+  background: rgba(18, 21, 28, 0.32);
+}
+
+:root[data-theme="aube"] .session-overlay-close-all,
+:root[data-theme="aube"] .session-focus-card-close {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day {
+  border-color: var(--border-card);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-complete {
+  border-color: rgba(14, 165, 196, 0.45);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-current {
+  border-color: rgba(109, 79, 214, 0.45);
+  background: var(--bg-card);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-open.is-complete {
+  border-color: var(--accent-blue);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-open.is-current {
+  border-color: var(--accent-purple);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .session-overlay-mini-label {
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day strong {
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-indicator {
+  border-color: rgba(107, 114, 128, 0.35);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-complete .session-overlay-mini-indicator {
+  border-color: var(--accent-blue);
+  box-shadow: inset 0 0 0 4px rgba(14, 165, 196, 0.1);
+}
+
+:root[data-theme="aube"] .session-overlay-mini-day.is-current .session-overlay-mini-indicator {
+  border-color: var(--accent-purple);
+  box-shadow: inset 0 0 0 4px rgba(109, 79, 214, 0.1);
+}
+
+:root[data-theme="aube"] .session-focus-card {
+  background: var(--bg-card);
+  box-shadow: 0 14px 40px rgba(18, 21, 28, 0.12);
+}
+
+:root[data-theme="aube"] .session-focus-card.is-cyan {
+  border-color: var(--accent-blue);
+  box-shadow: 0 14px 40px rgba(18, 21, 28, 0.12);
+}
+
+:root[data-theme="aube"] .session-focus-card.is-purple {
+  border-color: var(--accent-purple);
+  box-shadow: 0 14px 40px rgba(18, 21, 28, 0.12);
+}
+
+:root[data-theme="aube"] .session-focus-card-icon {
+  border-color: var(--border-card);
+  color: var(--text-secondary);
+}
+
+:root[data-theme="aube"] .session-focus-card-svg-icon,
+:root[data-theme="aube"] .session-focus-card-close-icon {
+  filter: none;
+}
+
+:root[data-theme="aube"] .session-focus-card-status {
+  border-color: var(--border-card);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .session-focus-card-save {
+  border-color: var(--accent-blue);
+  background: rgba(14, 165, 196, 0.1);
+  color: var(--accent-blue);
+}
+
+:root[data-theme="aube"] .session-focus-card-section {
+  border-top-color: var(--border-card);
+}
+
+:root[data-theme="aube"] .session-focus-card-section p,
+:root[data-theme="aube"] .session-focus-card-section li {
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .session-focus-card-markdown-editor {
+  border-color: var(--border-card);
+  background: #f9fafb;
+  color: var(--text-primary);
+}
+
+:root[data-theme="aube"] .session-focus-card-markdown-editor:focus {
+  border-color: var(--accent-blue);
+  box-shadow: none;
+}
+
+:root[data-theme="aube"] .session-focus-card-summary {
+  border-color: var(--border-card);
+  background: #f9fafb;
+}
+
+:root[data-theme="aube"] .session-overlay-note {
+  color: var(--text-primary);
+}

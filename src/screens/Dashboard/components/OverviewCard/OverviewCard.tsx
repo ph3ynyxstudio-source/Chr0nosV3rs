@@ -18,7 +18,7 @@ export function OverviewCard({
       <h2>Vue hebdomadaire du projet</h2>
       <p>
         {hasSelectedProject
-          ? `${projectName} est selectionne pour ${activeWeek?.toLowerCase()}.`
+          ? projectName
           : "Selectionnez un projet pour ouvrir sa semaine active."}
       </p>
       <button

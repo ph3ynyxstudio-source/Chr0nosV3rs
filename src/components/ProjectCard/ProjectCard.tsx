@@ -5,8 +5,6 @@ import "./ProjectCard.css";
 type ProjectCardProps = {
   name: string;
   lastActivity: string;
-  progress: number;
-  progressLabel: string;
   isActive?: boolean;
   onClick?: () => void;
   onDelete?: () => void;
@@ -33,8 +31,6 @@ function NeonIcon({
 export function ProjectCard({
   name,
   lastActivity,
-  progress,
-  progressLabel,
   isActive = false,
   onClick,
   onDelete,
@@ -76,40 +72,28 @@ export function ProjectCard({
             aria-label={`Modifier ${name}`}>
             <NeonIcon className="project-edit-icon" svg={editNeonIcon} />
           </button>
-          {canDelete ? (
-            <button
-              type="button"
-              className="project-delete-button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete?.();
-              }}
-              onKeyDown={(event) => {
-                event.stopPropagation();
-              }}
-              aria-label={`Supprimer ${name}`}>
-              Supprimer
-            </button>
-          ) : null}
         </div>
       </div>
       <small>Dernière activité</small>
       <p>{lastActivity}</p>
 
-      <div className="project-progress-meta">
-        <span>Progression</span>
-        <strong>{progressLabel}</strong>
-      </div>
-
-      <div
-        className="progress-container"
-        aria-label={`Progression ${progress}%`}>
-        <div className="progress-line" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
+      {canDelete ? (
+        <div className="project-card-footer">
+          <button
+            type="button"
+            className="project-delete-button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete?.();
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+            }}
+            aria-label={`Supprimer ${name}`}>
+            Supprimer
+          </button>
         </div>
-
-        <span className="pct-text">{progress}%</span>
-      </div>
+      ) : null}
     </article>
   );
 }
